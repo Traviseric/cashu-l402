@@ -31,7 +31,11 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 | Payment routing heuristic | `src/spend-router.ts` |
 | Zod schemas (runtime validation) | `src/schemas.ts` |
 | Barrel export | `src/index.ts` |
-| Tests | `src/__tests__/*.test.ts` |
+| Tests (unit) | `src/__tests__/*.test.ts` |
+| Tests (integration) | `src/__tests__/integration.test.ts` |
+| Mock Lightning (test helper) | `src/__tests__/helpers/mock-lightning.ts` |
+| Test HTTP server (test helper) | `src/__tests__/helpers/test-server.ts` |
+| Runnable demo | `examples/demo.ts` |
 | Full project spec | `../internal/docs/projects/cashu-l402.md` |
 | Research #2 (Programmable eCash) | `../internal/docs/BUILD_POSSIBILITIES/research/2-Cashu Programmable eCash Research.md` |
 | Research #3 (L402 + Agent Wallets) | `../internal/docs/BUILD_POSSIBILITIES/research/3-Agent Cashu L402 Integration Research.md` |
@@ -93,7 +97,8 @@ This library was extracted from ArxMint. Reference mapping for tracing lineage:
 ```bash
 npm install          # Install deps
 npm run typecheck    # tsc --noEmit
-npm test             # Vitest (103 tests)
+npm test             # Vitest (116 tests — 103 unit + 13 integration)
+npm run demo         # Run E2E demo (no Docker needed)
 npm run build        # Compile to dist/
 npm run lint         # Biome check
 ```
