@@ -15,6 +15,8 @@ import type { SpendRoute } from './types.js';
  * - Amount < 10k sats → ecash (no Lightning routing overhead)
  * - Otherwise → lightning (most widely supported)
  * - Fee estimate: ~0% for ecash, ~1% for lightning
+ *
+ * @returns Recommended spend route with backend, reason, and fee estimate
  */
 export function routePayment(params: {
 	amount: number;

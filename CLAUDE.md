@@ -29,6 +29,7 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 | L402 client (parse challenges, auto-pay fetch) | `src/l402-client.ts` |
 | Spending condition detection (NUT-10/11/14) | `src/conditions.ts` |
 | Payment routing heuristic | `src/spend-router.ts` |
+| Zod schemas (runtime validation) | `src/schemas.ts` |
 | Barrel export | `src/index.ts` |
 | Tests | `src/__tests__/*.test.ts` |
 | Full project spec | `../internal/docs/projects/cashu-l402.md` |
@@ -92,7 +93,7 @@ This library was extracted from ArxMint. Reference mapping for tracing lineage:
 ```bash
 npm install          # Install deps
 npm run typecheck    # tsc --noEmit
-npm test             # Vitest (51 tests)
+npm test             # Vitest (103 tests)
 npm run build        # Compile to dist/
 npm run lint         # Biome check
 ```

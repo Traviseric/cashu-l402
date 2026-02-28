@@ -18,10 +18,13 @@ export interface L402Token {
 	preimage: string;
 }
 
-/** Macaroon payload signed by the server */
+/** Macaroon payload signed by the server via HMAC-SHA256 */
 export interface MacaroonPayload {
+	/** Unique macaroon identifier (random hex) */
 	identifier: string;
+	/** Service location hint (e.g. "cashu-l402") */
 	location: string;
+	/** Attenuation caveats (e.g. ["service=/api/v1", "tier=premium"]) */
 	caveats: string[];
 }
 
@@ -57,9 +60,13 @@ export interface CashuPaywallConfig {
 
 /** Result of verifying a Cashu payment */
 export interface CashuPaymentResult {
+	/** Whether the payment was valid and claimed */
 	paid: boolean;
+	/** Total amount in satoshis across all proofs */
 	amountSats: number;
+	/** The decoded Cashu proofs */
 	proofs: unknown[];
+	/** Error message if verification failed */
 	error?: string;
 }
 
@@ -67,30 +74,45 @@ export interface CashuPaymentResult {
 // Unified payment SDK
 // ---------------------------------------------------------------------------
 
-/** Generic payment challenge (L402 or Cashu) */
+/** Generic payment challenge (L402 or Cashu) — unified across both protocols */
 export interface PaymentChallenge {
+	/** Which payment protocol */
 	type: 'l402' | 'cashu';
+	/** Requested amount */
 	amount: number;
+	/** Currency code (e.g. "sat", "msat") */
 	currency: string;
+	/** BOLT11 invoice (L402 only) */
 	invoice?: string;
+	/** Cashu mint URL (Cashu only) */
 	mintUrl?: string;
+	/** Base64 macaroon (L402 only) */
 	macaroon?: string;
+	/** Raw WWW-Authenticate header value */
 	wwwAuthenticate: string;
+	/** When this challenge expires */
 	expiresAt: Date;
 }
 
 /** Generic payment verification result */
 export interface PaymentResult {
+	/** Whether verification succeeded */
 	success: boolean;
+	/** Which protocol was verified */
 	type: 'l402' | 'cashu';
+	/** Proof of payment (macaroon or token) on success */
 	proof?: string;
+	/** Error message on failure */
 	error?: string;
 }
 
-/** Spend route recommendation */
+/** Spend route recommendation from the payment router */
 export interface SpendRoute {
+	/** Recommended payment backend */
 	backend: 'cashu' | 'lightning' | 'fedimint';
+	/** Human-readable explanation of why this backend was chosen */
 	reason: string;
+	/** Estimated fee in satoshis (0 for ecash, ~1% for Lightning) */
 	estimatedFee: number;
 }
 
@@ -100,9 +122,13 @@ export interface SpendRoute {
 
 /** NUT-10 well-known secret parsed into structured form */
 export interface Nut10Secret {
+	/** Condition kind (e.g. "P2PK", "HTLC", "PoS") */
 	kind: string;
+	/** Random nonce for uniqueness */
 	nonce: string;
+	/** Primary condition data (pubkey, hash, etc.) */
 	data: string;
+	/** Additional key-value tags (e.g. [["locktime", "1709337600"]]) */
 	tags: string[][];
 }
 
@@ -127,7 +153,9 @@ export interface ConditionInfo {
 
 /** Macaroon caveat derived from a spending condition */
 export interface ConditionCaveat {
+	/** Caveat key (e.g. "condition_kind", "locktime", "service_hash") */
 	key: string;
+	/** Caveat value */
 	value: string;
 }
 

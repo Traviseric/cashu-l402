@@ -3,6 +3,8 @@
  *
  * Cashu ecash ↔ L402 settlement bridge.
  * Atomic exchange between Cashu proofs and L402 access tokens.
+ *
+ * @packageDocumentation
  */
 
 // Types
@@ -65,3 +67,14 @@ export {
 
 // Payment routing
 export { routePayment } from './spend-router.js';
+
+// Zod schemas (runtime validation)
+export {
+	CashuPaywallConfigSchema,
+	ConditionInfoSchema,
+	CreateL402ChallengeParamsSchema,
+	MacaroonPayloadSchema,
+	Nut10SecretSchema,
+	RoutePaymentParamsSchema,
+	VerifyL402TokenParamsSchema,
+} from './schemas.js';

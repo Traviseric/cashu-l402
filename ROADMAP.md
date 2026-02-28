@@ -1,6 +1,6 @@
 # Roadmap — @te-btc/cashu-l402
 
-## Phase 1: Core Library (CURRENT — scaffolded, 51 tests passing)
+## Phase 1: Core Library (COMPLETE — 103 tests passing)
 
 Extract working L402 + NUT-24 code from ArxMint into standalone library.
 
@@ -11,15 +11,16 @@ Extract working L402 + NUT-24 code from ArxMint into standalone library.
 - [x] `src/l402-client.ts` — parse L402 challenges, auto-pay fetch, token cache
 - [x] `src/spend-router.ts` — payment routing heuristic (cashu/lightning/fedimint)
 - [x] `src/conditions.ts` — NUT-10 secret parsing, condition detection, caveat extraction
-- [x] `src/index.ts` — barrel export
+- [x] `src/schemas.ts` — Zod schemas for all config/payload types
+- [x] `src/index.ts` — barrel export (types, functions, schemas)
 - [x] Unit tests for cashu-paywall (14 tests)
 - [x] Unit tests for l402-server (13 tests)
 - [x] Unit tests for conditions (17 tests)
 - [x] Unit tests for spend-router (7 tests)
+- [x] Unit tests for l402-client (28 tests — parse, header build, cache, auto-pay, maxCostSats, header normalization)
+- [x] Unit tests for schemas (24 tests — validation, rejection, edge cases)
 - [x] TypeScript compiles clean, build outputs to dist/
-- [ ] `src/__tests__/l402-client.test.ts` — unit tests for client (parse, header build, cache)
-- [ ] Zod schemas for all config types (CashuPaywallConfig, L402 challenge params)
-- [ ] JSDoc on all public exports
+- [x] JSDoc on all public exports and interface fields
 
 ## Phase 2: P2PK/DLEQ Offline Verification + Conditional Proofs (1–2 weeks)
 
