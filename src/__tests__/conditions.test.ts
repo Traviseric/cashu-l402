@@ -73,6 +73,54 @@ describe('parseNut10Secret', () => {
 		expect(result).not.toBeNull();
 		expect(result!.tags).toEqual([]);
 	});
+
+	it('returns null for secrets longer than 10,000 characters', () => {
+		const oversized = JSON.stringify([
+			'P2PK',
+			{ nonce: 'a', data: 'b'.repeat(10_000), tags: [] },
+		]);
+		expect(oversized.length).toBeGreaterThan(10_000);
+		expect(parseNut10Secret(oversized)).toBeNull();
+	});
+
+	it('filters out tag entries that are not arrays', () => {
+		const secret = JSON.stringify([
+			'P2PK',
+			{
+				nonce: 'a',
+				data: 'b',
+				tags: [
+					['sigflag', 'SIG_ALL'], // valid
+					'not-an-array', // invalid — not array
+					123, // invalid — not array
+					null, // invalid — not array
+				],
+			},
+		]);
+		const result = parseNut10Secret(secret);
+		expect(result).not.toBeNull();
+		expect(result!.tags).toHaveLength(1);
+		expect(result!.tags[0]).toEqual(['sigflag', 'SIG_ALL']);
+	});
+
+	it('filters out tag arrays containing non-string elements', () => {
+		const secret = JSON.stringify([
+			'P2PK',
+			{
+				nonce: 'a',
+				data: 'b',
+				tags: [
+					['sigflag', 'SIG_ALL'], // valid
+					[123, null, {}], // invalid — elements not strings
+					['n_sigs', 2], // invalid — element is number not string
+				],
+			},
+		]);
+		const result = parseNut10Secret(secret);
+		expect(result).not.toBeNull();
+		expect(result!.tags).toHaveLength(1);
+		expect(result!.tags[0]).toEqual(['sigflag', 'SIG_ALL']);
+	});
 });
 
 describe('detectConditions', () => {

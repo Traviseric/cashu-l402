@@ -20,6 +20,9 @@ import type { ConditionCaveat, ConditionInfo, Nut10Secret, PrevalidationResult }
  * NUT-10 format: ["kind", {"nonce": "<str>", "data": "<str>", "tags": [["key", "value1", ...]]}]
  */
 export function parseNut10Secret(secret: string): Nut10Secret | null {
+	// Reject oversized secrets before parsing (prevent DoS via large JSON)
+	if (secret.length > 10_000) return null;
+
 	try {
 		const parsed = JSON.parse(secret);
 		if (!Array.isArray(parsed) || parsed.length < 2) return null;
@@ -30,7 +33,10 @@ export function parseNut10Secret(secret: string): Nut10Secret | null {
 		if (typeof body.nonce !== 'string') return null;
 		if (typeof body.data !== 'string') return null;
 
-		const tags: string[][] = Array.isArray(body.tags) ? body.tags : [];
+		const rawTags = Array.isArray(body.tags) ? body.tags : [];
+		const tags: string[][] = rawTags.filter(
+			(t): t is string[] => Array.isArray(t) && t.every((e) => typeof e === 'string'),
+		);
 
 		return { kind, nonce: body.nonce, data: body.data, tags };
 	} catch {
