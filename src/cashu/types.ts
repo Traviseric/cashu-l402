@@ -1,13 +1,28 @@
 // Cashu module type definitions
 
-export interface CashuToken {
-  token: string;
-  mint: string;
+import type { Proof, Token } from '@cashu/cashu-ts';
+
+export type { Proof, Token };
+
+export interface CashuMintQuote {
+  quote: string;
+  invoice: string;
+}
+
+export interface CashuRedeemResult {
   amount: number;
-  unit: string;
+  valid: boolean;
+  proofs: Proof[];
 }
 
 export interface CashuMintConfig {
   url: string;
   unit?: string;
+}
+
+export interface CashuToken {
+  token: string;
+  mint: string;
+  amount: number;
+  unit: string;
 }
