@@ -20,6 +20,9 @@ export type {
 	L402Challenge,
 	L402ChallengeResult,
 	L402Token,
+	LogEntry,
+	LogFn,
+	LogLevel,
 	LookupInvoiceFn,
 	MacaroonPayload,
 	MintKeyset,
@@ -32,12 +35,18 @@ export type {
 	PaymentResult,
 	PendingProof,
 	PrevalidationResult,
+	RateLimitContext,
+	RateLimitFn,
 	SettleFn,
 	SettlementBatchResult,
 	SettlementEntry,
 	SettlementQueueConfig,
+	SettlementQueueRef,
 	SpendRoute,
 } from './types.js';
+
+// Error codes (value export — use for programmatic error handling)
+export { CashuL402ErrorCode } from './types.js';
 
 // NUT-24 Cashu paywall
 export {

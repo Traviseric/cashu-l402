@@ -3,6 +3,78 @@
  */
 
 // ---------------------------------------------------------------------------
+// Error codes
+// ---------------------------------------------------------------------------
+
+/** Standardized machine-readable error codes for Cashu-L402 payment flows. */
+export const CashuL402ErrorCode = {
+	// Token / proof errors
+	EMPTY_TOKEN: 'EMPTY_TOKEN',
+	INSUFFICIENT_AMOUNT: 'INSUFFICIENT_AMOUNT',
+	WRONG_MINT: 'WRONG_MINT',
+	PROOF_ALREADY_SPENT: 'PROOF_ALREADY_SPENT',
+
+	// Offline verification errors
+	P2PK_LOCK_INVALID: 'P2PK_LOCK_INVALID',
+	DLEQ_PROOF_INVALID: 'DLEQ_PROOF_INVALID',
+	LOCKTIME_EXPIRED: 'LOCKTIME_EXPIRED',
+	OFFLINE_VERIFY_FAILED: 'OFFLINE_VERIFY_FAILED',
+
+	// Macaroon / L402 errors
+	INVALID_MACAROON: 'INVALID_MACAROON',
+	MACAROON_EXPIRED: 'MACAROON_EXPIRED',
+	SERVICE_MISMATCH: 'SERVICE_MISMATCH',
+	CHALLENGE_NOT_FOUND: 'CHALLENGE_NOT_FOUND',
+	CHALLENGE_EXPIRED: 'CHALLENGE_EXPIRED',
+	PREIMAGE_INVALID: 'PREIMAGE_INVALID',
+
+	// Rate limiting
+	RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+} as const;
+
+export type CashuL402ErrorCode = (typeof CashuL402ErrorCode)[keyof typeof CashuL402ErrorCode];
+
+// ---------------------------------------------------------------------------
+// Logging
+// ---------------------------------------------------------------------------
+
+/** Log severity levels for library-internal events. */
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+/**
+ * Structured log entry emitted by the library.
+ * Integrators can pipe this to pino, winston, console, or any logger.
+ */
+export interface LogEntry {
+	level: LogLevel;
+	event: string;
+	context?: Record<string, unknown>;
+}
+
+/** Optional logger callback. Called for key library events. */
+export type LogFn = (entry: LogEntry) => void;
+
+// ---------------------------------------------------------------------------
+// Rate limiting
+// ---------------------------------------------------------------------------
+
+/** Context passed to the rate limit callback. */
+export interface RateLimitContext {
+	/** IP or identifier for the requester (integrator-provided, passed through). */
+	requesterId?: string;
+	/** Which verification path was about to be attempted. */
+	verifyMethod: 'online' | 'offline' | 'smart';
+	/** Token length hint (not decoded for performance). */
+	tokenLength: number;
+}
+
+/**
+ * Rate limit callback. Return `true` to allow the request, `false` to reject.
+ * Called BEFORE proof verification begins — keeps expensive DLEQ off the hot path.
+ */
+export type RateLimitFn = (ctx: RateLimitContext) => boolean | Promise<boolean>;
+
+// ---------------------------------------------------------------------------
 // L402
 // ---------------------------------------------------------------------------
 
@@ -56,6 +128,10 @@ export interface CashuPaywallConfig {
 	unit?: string;
 	/** Human-readable description */
 	description?: string;
+	/** Optional structured logger callback */
+	onLog?: LogFn;
+	/** Optional rate limit callback — return false to reject before verification */
+	onRateLimit?: RateLimitFn;
 }
 
 /** Result of verifying a Cashu payment */
@@ -68,6 +144,8 @@ export interface CashuPaymentResult {
 	proofs: unknown[];
 	/** Error message if verification failed */
 	error?: string;
+	/** Machine-readable error code for programmatic handling */
+	code?: CashuL402ErrorCode;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,6 +182,8 @@ export interface PaymentResult {
 	proof?: string;
 	/** Error message on failure */
 	error?: string;
+	/** Machine-readable error code for programmatic handling */
+	code?: CashuL402ErrorCode;
 }
 
 /** Spend route recommendation from the payment router */
@@ -256,6 +336,10 @@ export interface BridgeVerifyConfig {
 	rootKey: string;
 	/** Service location for macaroon (default: "cashu-l402-bridge") */
 	location?: string;
+	/** Optional structured logger callback */
+	onLog?: LogFn;
+	/** Optional settlement queue — enqueues proofs for async batch settlement after offline verify */
+	settlementQueue?: SettlementQueueRef;
 }
 
 /** Extended Cashu payment result for V2 (offline + smart verification) */
@@ -311,6 +395,14 @@ export interface SettlementBatchResult {
 
 /** Settlement function provided by integrator for flush() */
 export type SettleFn = (entry: SettlementEntry) => Promise<void>;
+
+/**
+ * Minimal interface for a settlement queue wired into BridgeVerifyConfig.
+ * Satisfied by the return value of createSettlementQueue().
+ */
+export interface SettlementQueueRef {
+	enqueue: (params: { token: string; amountSats: number; mintUrl: string }) => Promise<string>;
+}
 
 // ---------------------------------------------------------------------------
 // Pending proofs — PoS/Escrow (Phase 2D)

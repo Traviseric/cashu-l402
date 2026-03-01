@@ -6,6 +6,7 @@
  */
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { CashuL402ErrorCode } from './types.js';
 import type {
 	CreateInvoiceFn,
 	L402ChallengeResult,
@@ -147,23 +148,23 @@ export async function verifyL402Token(params: {
 	// Verify macaroon signature
 	const payload = verifyMacaroon(params.macaroon, params.rootKey);
 	if (!payload) {
-		return { success: false, type: 'l402', error: 'Invalid macaroon signature' };
+		return { success: false, type: 'l402', error: 'Invalid macaroon signature', code: CashuL402ErrorCode.INVALID_MACAROON };
 	}
 
 	// Look up rHash from pending challenges
 	const challenge = pendingChallenges.get(params.macaroon);
 	if (!challenge) {
-		return { success: false, type: 'l402', error: 'Unknown or expired challenge' };
+		return { success: false, type: 'l402', error: 'Unknown or expired challenge', code: CashuL402ErrorCode.CHALLENGE_NOT_FOUND };
 	}
 
 	if (challenge.expiresAt < new Date()) {
 		pendingChallenges.delete(params.macaroon);
-		return { success: false, type: 'l402', error: 'Challenge expired' };
+		return { success: false, type: 'l402', error: 'Challenge expired', code: CashuL402ErrorCode.CHALLENGE_EXPIRED };
 	}
 
 	// Verify preimage → rHash
 	if (!verifyPreimage(params.preimage, challenge.rHash)) {
-		return { success: false, type: 'l402', error: 'Invalid preimage' };
+		return { success: false, type: 'l402', error: 'Invalid preimage', code: CashuL402ErrorCode.PREIMAGE_INVALID };
 	}
 
 	// Optionally verify with LND

@@ -8,6 +8,7 @@ import { CashuMint, CashuWallet, type Proof, getDecodedToken } from '@cashu/cash
 import { detectConditions, extractConditionCaveats } from './conditions.js';
 import { createBridgeL402 } from './l402-server.js';
 import { isEligibleForOfflineVerify, verifyTokenOffline } from './offline-verify.js';
+import { CashuL402ErrorCode } from './types.js';
 import type {
 	BridgeVerifyConfig,
 	CashuPaymentResult,
@@ -122,7 +123,7 @@ export async function verifyCashuPayment(
 		// Decode
 		const decoded = getDecodedToken(token);
 		if (!decoded.token || decoded.token.length === 0) {
-			return { paid: false, amountSats: 0, proofs: [], error: 'Empty token' };
+			return { paid: false, amountSats: 0, proofs: [], error: 'Empty token', code: CashuL402ErrorCode.EMPTY_TOKEN };
 		}
 
 		// Validate mint URL — all token entries must match expected mint
@@ -133,6 +134,7 @@ export async function verifyCashuPayment(
 					amountSats: 0,
 					proofs: [],
 					error: `Unexpected mint: ${entry.mint} (expected ${config.mintUrl})`,
+					code: CashuL402ErrorCode.WRONG_MINT,
 				};
 			}
 		}
@@ -149,6 +151,7 @@ export async function verifyCashuPayment(
 				amountSats: totalAmount,
 				proofs: allProofs,
 				error: `Insufficient amount: ${totalAmount} < ${config.priceSats}`,
+				code: CashuL402ErrorCode.INSUFFICIENT_AMOUNT,
 			};
 		}
 
@@ -168,6 +171,7 @@ export async function verifyCashuPayment(
 				amountSats: totalAmount,
 				proofs: allProofs,
 				error: 'One or more proofs already spent',
+				code: CashuL402ErrorCode.PROOF_ALREADY_SPENT,
 			};
 		}
 
@@ -213,35 +217,40 @@ function extractProofsFromToken(token: string): { proofs: Proof[]; mintUrl?: str
  *
  * Returns a V2 result with offline-specific fields.
  */
-export function verifyCashuPaymentOffline(
+export async function verifyCashuPaymentOffline(
 	token: string,
 	config: CashuPaywallConfig,
 	bridgeConfig: BridgeVerifyConfig,
-): CashuPaymentResultV2 {
+): Promise<CashuPaymentResultV2> {
 	try {
 		const { proofs, mintUrl } = extractProofsFromToken(token);
 
 		if (proofs.length === 0) {
+			bridgeConfig.onLog?.({ level: 'warn', event: 'empty_token', context: {} });
 			return {
 				paid: false, amountSats: 0, proofs: [], method: 'offline',
-				error: 'Empty token',
+				error: 'Empty token', code: CashuL402ErrorCode.EMPTY_TOKEN,
 			};
 		}
 
 		// Validate mint URL
 		if (mintUrl && mintUrl !== config.mintUrl) {
+			bridgeConfig.onLog?.({ level: 'warn', event: 'wrong_mint', context: { got: mintUrl, expected: config.mintUrl } });
 			return {
 				paid: false, amountSats: 0, proofs: [], method: 'offline',
 				error: `Unexpected mint: ${mintUrl} (expected ${config.mintUrl})`,
+				code: CashuL402ErrorCode.WRONG_MINT,
 			};
 		}
 
 		// Sum proofs
 		const totalAmount = proofs.reduce((sum, p) => sum + p.amount, 0);
 		if (totalAmount < config.priceSats) {
+			bridgeConfig.onLog?.({ level: 'warn', event: 'insufficient_amount', context: { got: totalAmount, required: config.priceSats } });
 			return {
 				paid: false, amountSats: totalAmount, proofs, method: 'offline',
 				error: `Insufficient amount: ${totalAmount} < ${config.priceSats}`,
+				code: CashuL402ErrorCode.INSUFFICIENT_AMOUNT,
 			};
 		}
 
@@ -254,6 +263,12 @@ export function verifyCashuPaymentOffline(
 
 		if (!offlineResult.allValid) {
 			const firstError = offlineResult.results.find((r) => !r.valid);
+			const isDleqFailure = firstError?.p2pkValid === true && firstError?.dleqValid === false;
+			bridgeConfig.onLog?.({
+				level: 'warn',
+				event: isDleqFailure ? 'dleq_verification_failed' : 'offline_verification_failed',
+				context: { error: firstError?.error, p2pkValid: firstError?.p2pkValid, dleqValid: firstError?.dleqValid },
+			});
 			return {
 				paid: false,
 				amountSats: totalAmount,
@@ -262,6 +277,7 @@ export function verifyCashuPaymentOffline(
 				p2pkVerified: firstError?.p2pkValid,
 				dleqVerified: firstError?.dleqValid,
 				error: firstError?.error ?? 'Offline verification failed',
+				code: isDleqFailure ? CashuL402ErrorCode.DLEQ_PROOF_INVALID : CashuL402ErrorCode.OFFLINE_VERIFY_FAILED,
 			};
 		}
 
@@ -290,12 +306,14 @@ export function verifyCashuPaymentOffline(
 		if (minLocktime !== undefined) {
 			const remaining = minLocktime - Math.floor(Date.now() / 1000);
 			if (remaining <= 0) {
+				bridgeConfig.onLog?.({ level: 'warn', event: 'proof_locktime_expired', context: { locktimeUnix: minLocktime } });
 				return {
 					paid: false,
 					amountSats: totalAmount,
 					proofs,
 					method: 'offline',
 					error: 'Proof locktime has expired',
+					code: CashuL402ErrorCode.LOCKTIME_EXPIRED,
 				};
 			}
 			ttlSeconds = remaining;
@@ -315,6 +333,12 @@ export function verifyCashuPaymentOffline(
 			ttlSeconds,
 		});
 
+		bridgeConfig.onLog?.({
+			level: 'info',
+			event: 'proof_verified_offline',
+			context: { amountSats: totalAmount, proofCount: proofs.length, dleqVerified: true },
+		});
+
 		return {
 			paid: true,
 			amountSats: totalAmount,
@@ -326,9 +350,11 @@ export function verifyCashuPaymentOffline(
 		};
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
+		bridgeConfig.onLog?.({ level: 'error', event: 'offline_verification_exception', context: { error: message } });
 		return {
 			paid: false, amountSats: 0, proofs: [], method: 'offline',
 			error: `Offline verification failed: ${message}`,
+			code: CashuL402ErrorCode.OFFLINE_VERIFY_FAILED,
 		};
 	}
 }
@@ -344,12 +370,27 @@ export function verifyCashuPaymentOffline(
  * @param token - Encoded Cashu token
  * @param config - Paywall configuration (price, mint URL, etc.)
  * @param bridgeConfig - Optional bridge configuration for offline path
+ * @param requesterId - Optional requester identifier passed to rate limiter
  */
 export async function verifyCashuPaymentSmart(
 	token: string,
 	config: CashuPaywallConfig,
 	bridgeConfig?: BridgeVerifyConfig,
+	requesterId?: string,
 ): Promise<CashuPaymentResultV2> {
+	// Rate limit check (before any expensive work)
+	if (config.onRateLimit) {
+		const verifyMethod = bridgeConfig ? 'smart' : 'online';
+		const allowed = await config.onRateLimit({ requesterId, verifyMethod, tokenLength: token.length });
+		if (!allowed) {
+			config.onLog?.({ level: 'warn', event: 'rate_limit_exceeded', context: { requesterId, tokenLength: token.length } });
+			return {
+				paid: false, amountSats: 0, proofs: [], method: verifyMethod === 'smart' ? 'offline' : 'online',
+				error: 'Rate limit exceeded', code: CashuL402ErrorCode.RATE_LIMIT_EXCEEDED,
+			};
+		}
+	}
+
 	// Try offline path if bridge config provided and token is eligible
 	if (bridgeConfig && isEligibleForOfflineVerify(token, bridgeConfig.bridgePubkey)) {
 		const result = verifyCashuPaymentOffline(token, config, bridgeConfig);
