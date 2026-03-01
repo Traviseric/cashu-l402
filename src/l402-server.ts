@@ -308,13 +308,16 @@ export function createBridgeL402(params: {
 	const location = params.location ?? 'cashu-l402-bridge';
 	const ttl = params.ttlSeconds ?? 86400;
 
-	// Deterministic preimage: HMAC-SHA256(rootKey, 'bridge:' + SHA256(sorted proof secrets))
+	// Non-deterministic preimage: HMAC-SHA256(rootKey, 'bridge:' + identifier + ':' + SHA256(sorted proof secrets))
+	// The identifier is a random 16-byte value generated per call, so the preimage is unique per issuance
+	// event even when the same proof secrets are presented. This prevents replay attacks and decouples the
+	// preimage from the proof contents (CWE-330).
 	const sortedSecrets = [...params.proofSecrets].sort();
 	const secretsDigest = createHash('sha256')
 		.update(sortedSecrets.join(':'))
 		.digest('hex');
 	const preimage = createHmac('sha256', params.rootKey)
-		.update(`bridge:${secretsDigest}`)
+		.update(`bridge:${identifier}:${secretsDigest}`)
 		.digest('hex');
 
 	// Build caveats

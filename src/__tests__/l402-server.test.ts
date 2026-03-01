@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
 	clearPendingChallenges,
+	createBridgeL402,
 	createL402Challenge,
 	parseL402AuthHeader,
 	signMacaroon,
@@ -217,5 +218,76 @@ describe('createL402Challenge + verifyL402Token', () => {
 
 		expect(result.success).toBe(false);
 		expect(result.error).toContain('expired');
+	});
+});
+
+describe('createBridgeL402', () => {
+	const BRIDGE_KEY = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899';
+
+	it('returns a macaroon and preimage', () => {
+		const result = createBridgeL402({
+			rootKey: BRIDGE_KEY,
+			proofSecrets: ['secret1', 'secret2'],
+			resourcePath: '/api/resource',
+		});
+		expect(typeof result.macaroon).toBe('string');
+		expect(result.macaroon.length).toBeGreaterThan(0);
+		expect(typeof result.preimage).toBe('string');
+		expect(result.preimage.length).toBeGreaterThan(0);
+	});
+
+	it('produces unique preimage for same inputs on each call', () => {
+		const params = { rootKey: BRIDGE_KEY, proofSecrets: ['s1', 's2'], resourcePath: '/api' };
+		const result1 = createBridgeL402(params);
+		const result2 = createBridgeL402(params);
+		expect(result1.preimage).not.toBe(result2.preimage);
+	});
+
+	it('produces unique macaroon identifier for same inputs on each call', () => {
+		const params = { rootKey: BRIDGE_KEY, proofSecrets: ['s1', 's2'], resourcePath: '/api' };
+		const result1 = createBridgeL402(params);
+		const result2 = createBridgeL402(params);
+		expect(result1.macaroon).not.toBe(result2.macaroon);
+	});
+
+	it('macaroon verifies with the root key', () => {
+		const result = createBridgeL402({
+			rootKey: BRIDGE_KEY,
+			proofSecrets: ['s1'],
+			resourcePath: '/api/test',
+		});
+		const payload = verifyMacaroon(result.macaroon, BRIDGE_KEY);
+		expect(payload).not.toBeNull();
+		expect(payload!.caveats).toContain('service=/api/test');
+		expect(payload!.caveats).toContain('payment_method=cashu_p2pk');
+	});
+
+	it('includes expires_at caveat when ttlSeconds > 0', () => {
+		const before = Math.floor(Date.now() / 1000);
+		const result = createBridgeL402({
+			rootKey: BRIDGE_KEY,
+			proofSecrets: ['s1'],
+			resourcePath: '/api/test',
+			ttlSeconds: 3600,
+		});
+		const payload = verifyMacaroon(result.macaroon, BRIDGE_KEY);
+		expect(payload).not.toBeNull();
+		const expiryCaveat = payload!.caveats.find((c) => c.startsWith('expires_at='));
+		expect(expiryCaveat).toBeDefined();
+		const expiresAt = parseInt(expiryCaveat!.split('=')[1], 10);
+		expect(expiresAt).toBeGreaterThanOrEqual(before + 3600);
+	});
+
+	it('omits expires_at caveat when ttlSeconds is 0', () => {
+		const result = createBridgeL402({
+			rootKey: BRIDGE_KEY,
+			proofSecrets: ['s1'],
+			resourcePath: '/api/test',
+			ttlSeconds: 0,
+		});
+		const payload = verifyMacaroon(result.macaroon, BRIDGE_KEY);
+		expect(payload).not.toBeNull();
+		const expiryCaveat = payload!.caveats.find((c) => c.startsWith('expires_at='));
+		expect(expiryCaveat).toBeUndefined();
 	});
 });
