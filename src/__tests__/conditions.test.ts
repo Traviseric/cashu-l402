@@ -169,6 +169,46 @@ describe('detectConditions', () => {
 	it('returns null for unconditional proofs', () => {
 		expect(detectConditions({ secret: 'plaintext-secret' })).toBeNull();
 	});
+
+	it('correctly handles locktime=0 (already expired, not undefined)', () => {
+		const secret = JSON.stringify([
+			'P2PK',
+			{ nonce: 'n', data: 'd', tags: [['locktime', '0']] },
+		]);
+		const result = detectConditions({ secret });
+		expect(result).not.toBeNull();
+		expect(result!.locktime).toBe(0);
+	});
+
+	it('returns undefined locktime for negative or NaN values', () => {
+		const negSecret = JSON.stringify([
+			'P2PK',
+			{ nonce: 'n', data: 'd', tags: [['locktime', '-1']] },
+		]);
+		expect(detectConditions({ secret: negSecret })!.locktime).toBeUndefined();
+
+		const nanSecret = JSON.stringify([
+			'P2PK',
+			{ nonce: 'n', data: 'd', tags: [['locktime', 'notanumber']] },
+		]);
+		expect(detectConditions({ secret: nanSecret })!.locktime).toBeUndefined();
+	});
+
+	it('returns undefined n_sigs for zero (not meaningful)', () => {
+		const secret = JSON.stringify([
+			'P2PK',
+			{ nonce: 'n', data: 'd', tags: [['n_sigs', '0']] },
+		]);
+		expect(detectConditions({ secret })!.nSigs).toBeUndefined();
+	});
+
+	it('correctly handles n_sigs=1', () => {
+		const secret = JSON.stringify([
+			'P2PK',
+			{ nonce: 'n', data: 'd', tags: [['n_sigs', '1']] },
+		]);
+		expect(detectConditions({ secret })!.nSigs).toBe(1);
+	});
 });
 
 describe('extractConditionCaveats', () => {

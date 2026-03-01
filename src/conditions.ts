@@ -70,15 +70,19 @@ export function detectConditions(proof: { secret: string }): ConditionInfo | nul
 		const [key, ...values] = tag;
 
 		switch (key) {
-			case 'locktime':
-				info.locktime = Number.parseInt(values[0], 10) || undefined;
+			case 'locktime': {
+				const v = Number.parseInt(values[0], 10);
+				info.locktime = !Number.isNaN(v) && v >= 0 ? v : undefined;
 				break;
+			}
 			case 'refund':
 				info.refundKeys = values;
 				break;
-			case 'n_sigs':
-				info.nSigs = Number.parseInt(values[0], 10) || undefined;
+			case 'n_sigs': {
+				const v = Number.parseInt(values[0], 10);
+				info.nSigs = !Number.isNaN(v) && v >= 1 ? v : undefined;
 				break;
+			}
 			case 'pubkeys':
 				info.pubkeys = values;
 				break;
