@@ -1,6 +1,6 @@
 # Roadmap — @te-btc/cashu-l402
 
-## Phase 1: Core Library (COMPLETE — 103 tests passing)
+## Phase 1: Core Library (COMPLETE — 116 tests)
 
 Extract working L402 + NUT-24 code from ArxMint into standalone library.
 
@@ -19,34 +19,38 @@ Extract working L402 + NUT-24 code from ArxMint into standalone library.
 - [x] Unit tests for spend-router (7 tests)
 - [x] Unit tests for l402-client (28 tests — parse, header build, cache, auto-pay, maxCostSats, header normalization)
 - [x] Unit tests for schemas (24 tests — validation, rejection, edge cases)
+- [x] Integration tests (13 tests — full E2E L402 flow, dual challenge, token caching)
 - [x] TypeScript compiles clean, build outputs to dist/
 - [x] JSDoc on all public exports and interface fields
 
-## Phase 2: P2PK/DLEQ Offline Verification + Conditional Proofs (1–2 weeks)
+## Phase 2: P2PK/DLEQ Offline Verification + Conditional Proofs (COMPLETE — 177 tests)
 
 The critical optimization from Research #3: eliminate synchronous mint contact. Then wire spending conditions into the verify flow.
 
 ### P2PK + DLEQ Offline Settlement (Research #3)
-- [ ] Bridge keypair management — generate/load secp256k1 keypair, advertise pubkey
-- [ ] NUT-11 P2PK lock verification — validate incoming proofs are locked to bridge's pubkey
-- [ ] NUT-12 DLEQ offline verification — reconstruct C', verify `e = hash(R1, R2, mint_pubkey, C')` locally without mint contact
-- [ ] Deferred settlement queue — store verified locked proofs in local DB, background async batch-melt with mint
-- [ ] Internal third-party caveat satisfaction — generate L402 Macaroon without Lightning preimage (bridge uses deterministic secret)
-- [ ] Fallback to synchronous `wallet.receive()` when agent sends proofs without P2PK lock or DLEQ proof
-- [ ] Tests for DLEQ math verification (valid proof, invalid proof, tampered signature)
-- [ ] Tests for P2PK lock validation (correct pubkey, wrong pubkey, missing lock)
+- [x] `src/bridge-keys.ts` — bridge keypair management (generate/load secp256k1 via `@noble/curves`)
+- [x] `src/offline-verify.ts` — `isLockedToBridge()` (timing-safe P2PK check), `hasValidDleqProof()` (wraps cashu-ts `hasValidDleq`), `verifyProofOffline()`, `verifyTokenOffline()`
+- [x] NUT-12 DLEQ offline verification — uses cashu-ts `hasValidDleq(proof, mintKeys)` for local verification without mint contact
+- [x] `src/settlement-queue.ts` — `createSettlementQueue()` with `enqueue`, `flush`, `pendingCount`, `clear`, `onPersist`/`onResolve` hooks
+- [x] `createBridgeL402()` in `l402-server.ts` — deterministic preimage via `HMAC-SHA256(rootKey, 'bridge:' + SHA256(sorted secrets))`, issues L402 without Lightning
+- [x] `verifyCashuPaymentSmart()` in `cashu-paywall.ts` — tries offline if `bridgeConfig` provided + proofs have P2PK+DLEQ, falls back to synchronous `wallet.receive()` otherwise
+- [x] `isEligibleForOfflineVerify()` — checks if token proofs all have P2PK locks + DLEQ before choosing path
+- [x] Tests for bridge-keys (11 tests — keypair gen, pubkey format, load from existing, validation)
+- [x] Tests for offline-verify (25 tests — P2PK lock pass/fail, DLEQ pass/fail, tampered DLEQ, batch, token-level)
+- [x] `src/__tests__/helpers/mock-mint-keys.ts` — full BDHKE proof factory using cashu-ts crypto sub-paths (no real mint needed)
 
 ### Conditional Proof Integration (Research #2)
-- [ ] Extend `verifyCashuPayment()` to detect conditions on incoming proofs
-- [ ] Auto-extract condition caveats → embed in L402 macaroon on issuance
-- [ ] Time-lock aware TTL: macaroon TTL = min(default_ttl, locktime remaining)
-- [ ] PoS (proof-of-service) flow: hold proof in pending state until provider submits output hash
-- [ ] Escrow flow: multi-party proof handling (detect n_sigs threshold, track co-signatures)
-- [ ] `PendingProof` abstraction — in-memory store for conditional proofs awaiting resolution
-- [ ] Hookable persistence interface: `onChallengePersist`, `onChallengeResolve` callbacks
-- [ ] Tests for conditional verify flow (PoS token → macaroon with service_hash caveat)
-- [ ] Tests for time-lock TTL clamping
-- [ ] Tests for expired condition rejection
+- [x] `verifyCashuPaymentOffline()` detects conditions on incoming proofs via `detectConditions()`
+- [x] Auto-extract condition caveats → embed in bridge L402 macaroon via `extractConditionCaveats()`
+- [x] Time-lock aware TTL: macaroon TTL = `min(default_ttl, locktime - now)`, expired locktimes rejected
+- [x] `src/pending-proofs.ts` — `createPendingProofStore()` with `register`, `resolve`, `expire` (PoS/escrow resolution stub)
+- [x] Tests for conditional verify flow (10 tests — TTL clamping, expired locktime rejection, condition caveats in macaroon, deduplication)
+- [x] Tests for settlement queue (15 tests — enqueue/count, flush, partial failures, hooks, concurrent safety)
+
+### PoS + Escrow (Stub — awaits custom mint)
+- [x] `PendingProof` type and `createPendingProofStore()` callback-based resolution interface
+- [ ] Full PoS resolution (requires `@te-btc/cashu-mint` with PoS kind support)
+- [ ] Full escrow co-signature flow (requires multi-party signing infrastructure)
 
 ## Phase 3: Integration Hardening (3-5 days)
 
