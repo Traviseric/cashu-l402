@@ -70,7 +70,7 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 - **NUT-24 settlement flow**: 5-step atomic exchange — Intercept+Challenge → Ecash Transmission (X-Cashu header) → Offline Verification (DLEQ) → Macaroon Issuance → Session Authorization. Full detail in `../internal/docs/projects/cashu-l402.md`.
 - **Condition detection**: `conditions.ts` detects NUT-10 structured secrets and extracts metadata. Does client-side pre-validation (locktime checks) and caveat extraction. Does NOT verify Schnorr signatures (that's the mint's job). DOES verify DLEQ proofs for offline settlement (that's the bridge's job).
 - **Token cache**: L402 client caches tokens per-domain in memory. Cleared on restart. For production persistence, integrator wraps with their own storage.
-- **Macaroon HMAC chaining**: Root key signs identifier → each caveat extends the HMAC chain → one-way hashing prevents caveat removal. Standard L402 caveats: service identifiers (endpoint tiers), capability scopes (allowed verbs), volume budgets (rate limiting via crypto), third-party caveats (payment hash as external proof requirement).
+- **Macaroon signing (single-blob HMAC)**: Root key signs the entire serialized payload `{identifier, location, caveats[]}` as one JSON blob via HMAC-SHA256. This prevents tampering with any field (identifier, location, or any caveat) but does NOT support per-caveat attenuation after issuance — adding a caveat requires re-signing with the root key. Standard L402 caveats supported: `service=` (endpoint identifier), `expires_at=` (Unix timestamp), `payment_method=` (cashu_p2pk). Phase 5 will add true per-caveat HMAC chaining for delegation and third-party caveats.
 
 ## Spending Conditions (from Research #2)
 

@@ -22,6 +22,10 @@ import type {
 /**
  * Sign a macaroon payload with HMAC-SHA256.
  * Returns base64-encoded `{payload, sig}` string.
+ *
+ * NOTE: Signs the entire serialized payload as one blob (not per-caveat chaining).
+ * This means caveats cannot be attenuated after issuance without the root key.
+ * Per-caveat chaining is planned for Phase 5 (delegation/third-party caveat support).
  */
 export function signMacaroon(payload: MacaroonPayload, rootKey: string): string {
 	const payloadStr = JSON.stringify(payload);
