@@ -164,6 +164,150 @@ describe('extractConditionCaveats', () => {
 	});
 });
 
+describe('detectConditions — HTLC', () => {
+	const htlcHash = 'a'.repeat(64); // 64-char hex hash
+
+	it('detects HTLC kind and stores hash in data field', () => {
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'abc123',
+				data: htlcHash,
+				tags: [],
+			},
+		]);
+
+		const result = detectConditions({ secret });
+		expect(result).not.toBeNull();
+		expect(result!.kind).toBe('HTLC');
+		expect(result!.data).toBe(htlcHash);
+	});
+
+	it('extracts locktime from HTLC timelock tag', () => {
+		const locktime = Math.floor(Date.now() / 1000) + 7200;
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'nonce1',
+				data: htlcHash,
+				tags: [['locktime', String(locktime)]],
+			},
+		]);
+
+		const result = detectConditions({ secret });
+		expect(result).not.toBeNull();
+		expect(result!.kind).toBe('HTLC');
+		expect(result!.locktime).toBe(locktime);
+	});
+
+	it('extracts refund keys from HTLC refund tag', () => {
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'nonce2',
+				data: htlcHash,
+				tags: [['refund', '02refundkey1', '02refundkey2']],
+			},
+		]);
+
+		const result = detectConditions({ secret });
+		expect(result).not.toBeNull();
+		expect(result!.refundKeys).toEqual(['02refundkey1', '02refundkey2']);
+	});
+});
+
+describe('extractConditionCaveats — HTLC', () => {
+	const htlcHash = 'b'.repeat(64);
+
+	it('includes condition_kind caveat for HTLC', () => {
+		const secret = JSON.stringify([
+			'HTLC',
+			{ nonce: 'n1', data: htlcHash, tags: [] },
+		]);
+		const conditions = detectConditions({ secret })!;
+		const caveats = extractConditionCaveats(conditions);
+
+		expect(caveats.find((c) => c.key === 'condition_kind')?.value).toBe('HTLC');
+	});
+
+	it('adds locktime and max_ttl_seconds caveats when HTLC has timelock', () => {
+		const futureTime = Math.floor(Date.now() / 1000) + 3600;
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'n2',
+				data: htlcHash,
+				tags: [['locktime', String(futureTime)]],
+			},
+		]);
+		const conditions = detectConditions({ secret })!;
+		const caveats = extractConditionCaveats(conditions);
+
+		expect(caveats.find((c) => c.key === 'locktime')).toBeTruthy();
+		expect(caveats.find((c) => c.key === 'max_ttl_seconds')).toBeTruthy();
+	});
+
+	it('does not add locktime caveats when HTLC has no timelock', () => {
+		const secret = JSON.stringify([
+			'HTLC',
+			{ nonce: 'n3', data: htlcHash, tags: [] },
+		]);
+		const conditions = detectConditions({ secret })!;
+		const caveats = extractConditionCaveats(conditions);
+
+		expect(caveats.find((c) => c.key === 'locktime')).toBeUndefined();
+		expect(caveats.find((c) => c.key === 'max_ttl_seconds')).toBeUndefined();
+	});
+});
+
+describe('prevalidateCondition — HTLC', () => {
+	const htlcHash = 'c'.repeat(64);
+
+	it('returns valid for HTLC with future locktime', () => {
+		const futureTime = Math.floor(Date.now() / 1000) + 3600;
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'n4',
+				data: htlcHash,
+				tags: [['locktime', String(futureTime)]],
+			},
+		]);
+
+		const result = prevalidateCondition({ secret });
+		expect(result.valid).toBe(true);
+		expect(result.expired).toBe(false);
+		expect(result.remainingSeconds).toBeGreaterThan(3500);
+	});
+
+	it('returns invalid for HTLC with expired locktime', () => {
+		const pastTime = Math.floor(Date.now() / 1000) - 600;
+		const secret = JSON.stringify([
+			'HTLC',
+			{
+				nonce: 'n5',
+				data: htlcHash,
+				tags: [['locktime', String(pastTime)]],
+			},
+		]);
+
+		const result = prevalidateCondition({ secret });
+		expect(result.valid).toBe(false);
+		expect(result.expired).toBe(true);
+		expect(result.error).toContain('expired');
+	});
+
+	it('returns valid for HTLC without locktime (hash-only lock)', () => {
+		const secret = JSON.stringify([
+			'HTLC',
+			{ nonce: 'n6', data: htlcHash, tags: [] },
+		]);
+
+		const result = prevalidateCondition({ secret });
+		expect(result.valid).toBe(true);
+	});
+});
+
 describe('prevalidateCondition', () => {
 	it('returns valid for unconditional proofs', () => {
 		const result = prevalidateCondition({ secret: 'plain-secret' });
