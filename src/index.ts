@@ -67,6 +67,7 @@ export {
 	getPendingChallengeCount,
 	parseL402AuthHeader,
 	signMacaroon,
+	verifyCaveats,
 	verifyL402Token,
 	verifyMacaroon,
 	verifyPreimage,

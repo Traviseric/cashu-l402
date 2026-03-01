@@ -44,18 +44,18 @@ describe('CashuL402ErrorCode', () => {
 		expect(new Set(codes).size).toBe(codes.length);
 	});
 
-	it('returns EMPTY_TOKEN code for empty token (offline)', () => {
+	it('returns EMPTY_TOKEN code for empty token (offline)', async () => {
 		// An empty proofs array encodes to a token with 0 proofs
 		const token = makeToken([]);
-		const result = verifyCashuPaymentOffline(token, basePaywall, baseBridge);
+		const result = await verifyCashuPaymentOffline(token, basePaywall, baseBridge);
 		expect(result.paid).toBe(false);
 		expect(result.code).toBe(CashuL402ErrorCode.EMPTY_TOKEN);
 	});
 
-	it('returns WRONG_MINT code for mismatched mint (offline)', () => {
+	it('returns WRONG_MINT code for mismatched mint (offline)', async () => {
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
 		const token = makeToken([proof], 'https://other.mint');
-		const result = verifyCashuPaymentOffline(
+		const result = await verifyCashuPaymentOffline(
 			token,
 			{ ...basePaywall, mintUrl: 'https://mock.mint' },
 			baseBridge,
@@ -64,10 +64,10 @@ describe('CashuL402ErrorCode', () => {
 		expect(result.code).toBe(CashuL402ErrorCode.WRONG_MINT);
 	});
 
-	it('returns INSUFFICIENT_AMOUNT code when proofs are too small (offline)', () => {
+	it('returns INSUFFICIENT_AMOUNT code when proofs are too small (offline)', async () => {
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint, 1);
 		const token = makeToken([proof]);
-		const result = verifyCashuPaymentOffline(
+		const result = await verifyCashuPaymentOffline(
 			token,
 			{ ...basePaywall, priceSats: 1000 },
 			baseBridge,
@@ -82,14 +82,14 @@ describe('CashuL402ErrorCode', () => {
 // ---------------------------------------------------------------------------
 
 describe('onLog callback (logging hooks)', () => {
-	it('calls onLog with proof_verified_offline on successful offline verification', () => {
+	it('calls onLog with proof_verified_offline on successful offline verification', async () => {
 		const logs: LogEntry[] = [];
 		const onLog = (entry: LogEntry) => logs.push(entry);
 
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
 		const token = makeToken([proof]);
 
-		const result = verifyCashuPaymentOffline(token, basePaywall, { ...baseBridge, onLog });
+		const result = await verifyCashuPaymentOffline(token, basePaywall, { ...baseBridge, onLog });
 
 		expect(result.paid).toBe(true);
 		const successLog = logs.find((l) => l.event === 'proof_verified_offline');
@@ -98,14 +98,14 @@ describe('onLog callback (logging hooks)', () => {
 		expect(successLog?.context?.dleqVerified).toBe(true);
 	});
 
-	it('calls onLog with wrong_mint warning when mint does not match', () => {
+	it('calls onLog with wrong_mint warning when mint does not match', async () => {
 		const logs: LogEntry[] = [];
 		const onLog = (entry: LogEntry) => logs.push(entry);
 
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
 		const token = makeToken([proof], 'https://other.mint');
 
-		verifyCashuPaymentOffline(
+		await verifyCashuPaymentOffline(
 			token,
 			{ ...basePaywall, mintUrl: 'https://mock.mint' },
 			{ ...baseBridge, onLog },
@@ -116,7 +116,7 @@ describe('onLog callback (logging hooks)', () => {
 		expect(warnLog?.level).toBe('warn');
 	});
 
-	it('calls onLog with locktime warning when proof locktime has expired', () => {
+	it('calls onLog with locktime warning when proof locktime has expired', async () => {
 		const logs: LogEntry[] = [];
 		const onLog = (entry: LogEntry) => logs.push(entry);
 
@@ -126,7 +126,7 @@ describe('onLog callback (logging hooks)', () => {
 		]);
 		const token = makeToken([proof]);
 
-		const result = verifyCashuPaymentOffline(token, basePaywall, { ...baseBridge, onLog });
+		const result = await verifyCashuPaymentOffline(token, basePaywall, { ...baseBridge, onLog });
 
 		expect(result.paid).toBe(false);
 		expect(result.code).toBe(CashuL402ErrorCode.LOCKTIME_EXPIRED);
@@ -135,11 +135,12 @@ describe('onLog callback (logging hooks)', () => {
 		expect(warnLog?.level).toBe('warn');
 	});
 
-	it('does not throw when onLog is not provided', () => {
+	it('does not throw when onLog is not provided', async () => {
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
 		const token = makeToken([proof]);
 		// No onLog — should not throw
-		expect(() => verifyCashuPaymentOffline(token, basePaywall, baseBridge)).not.toThrow();
+		const result = await verifyCashuPaymentOffline(token, basePaywall, baseBridge);
+		expect(result).toBeDefined();
 	});
 });
 

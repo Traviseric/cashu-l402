@@ -5,6 +5,7 @@ import {
 	createL402Challenge,
 	parseL402AuthHeader,
 	signMacaroon,
+	verifyCaveats,
 	verifyL402Token,
 	verifyMacaroon,
 	verifyPreimage,
@@ -100,6 +101,66 @@ describe('parseL402AuthHeader', () => {
 	it('returns null for null/empty', () => {
 		expect(parseL402AuthHeader(null)).toBeNull();
 		expect(parseL402AuthHeader('')).toBeNull();
+	});
+});
+
+describe('verifyCaveats', () => {
+	const base = { identifier: 'id', location: 'loc' };
+
+	it('passes when no caveats present', () => {
+		const result = verifyCaveats({ ...base, caveats: [] });
+		expect(result.valid).toBe(true);
+	});
+
+	it('passes token with future expires_at', () => {
+		const future = Math.floor(Date.now() / 1000) + 3600;
+		const result = verifyCaveats({ ...base, caveats: [`expires_at=${future}`] });
+		expect(result.valid).toBe(true);
+	});
+
+	it('rejects token with past expires_at', () => {
+		const past = Math.floor(Date.now() / 1000) - 100;
+		const result = verifyCaveats({ ...base, caveats: [`expires_at=${past}`] });
+		expect(result.valid).toBe(false);
+		expect(result.error).toContain('Token expired');
+	});
+
+	it('passes token without expires_at (backwards compatible)', () => {
+		const result = verifyCaveats({ ...base, caveats: ['service=/api/v1', 'tier=premium'] });
+		expect(result.valid).toBe(true);
+	});
+
+	it('passes matching service caveat', () => {
+		const result = verifyCaveats(
+			{ ...base, caveats: ['service=/api/v1'] },
+			'/api/v1',
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	it('rejects mismatched service caveat', () => {
+		const result = verifyCaveats(
+			{ ...base, caveats: ['service=/api/basic'] },
+			'/api/premium',
+		);
+		expect(result.valid).toBe(false);
+		expect(result.error).toContain('Service mismatch');
+		expect(result.error).toContain('/api/premium');
+	});
+
+	it('skips service check when expectedService not provided', () => {
+		const result = verifyCaveats({ ...base, caveats: ['service=/api/basic'] });
+		expect(result.valid).toBe(true);
+	});
+
+	it('rejects on expires_at even when service matches', () => {
+		const past = Math.floor(Date.now() / 1000) - 1;
+		const result = verifyCaveats(
+			{ ...base, caveats: [`expires_at=${past}`, 'service=/api/v1'] },
+			'/api/v1',
+		);
+		expect(result.valid).toBe(false);
+		expect(result.error).toContain('Token expired');
 	});
 });
 

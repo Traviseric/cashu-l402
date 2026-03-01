@@ -53,6 +53,49 @@ export function verifyMacaroon(token: string, rootKey: string): MacaroonPayload 
 }
 
 // ---------------------------------------------------------------------------
+// Caveat semantic verification
+// ---------------------------------------------------------------------------
+
+/**
+ * Verify caveat semantics for a parsed macaroon payload.
+ * Checks `expires_at` (time) and `service=` (resource match) caveats.
+ *
+ * Call this after `verifyMacaroon` to enforce access policy.
+ * Tokens without `expires_at` pass the time check (backwards compatible).
+ *
+ * @param payload - Parsed MacaroonPayload from verifyMacaroon
+ * @param expectedService - Optional: require service= caveat to match this value
+ */
+export function verifyCaveats(
+	payload: MacaroonPayload,
+	expectedService?: string,
+): { valid: boolean; error?: string } {
+	const now = Math.floor(Date.now() / 1000);
+
+	for (const caveat of payload.caveats) {
+		const eqIndex = caveat.indexOf('=');
+		if (eqIndex === -1) continue;
+		const key = caveat.slice(0, eqIndex);
+		const value = caveat.slice(eqIndex + 1);
+
+		if (key === 'expires_at') {
+			const expiresAt = parseInt(value, 10);
+			if (isNaN(expiresAt) || now > expiresAt) {
+				return { valid: false, error: `Token expired at ${value}` };
+			}
+		}
+
+		if (key === 'service' && expectedService !== undefined) {
+			if (value !== expectedService) {
+				return { valid: false, error: `Service mismatch: expected ${expectedService}, got ${value}` };
+			}
+		}
+	}
+
+	return { valid: true };
+}
+
+// ---------------------------------------------------------------------------
 // Preimage verification
 // ---------------------------------------------------------------------------
 
@@ -144,11 +187,25 @@ export async function verifyL402Token(params: {
 	preimage: string;
 	rootKey: string;
 	lookupInvoice?: LookupInvoiceFn;
+	/** Optional: require service= caveat to match this value */
+	expectedService?: string;
 }): Promise<PaymentResult> {
 	// Verify macaroon signature
 	const payload = verifyMacaroon(params.macaroon, params.rootKey);
 	if (!payload) {
 		return { success: false, type: 'l402', error: 'Invalid macaroon signature', code: CashuL402ErrorCode.INVALID_MACAROON };
+	}
+
+	// Verify caveat semantics (expiry, service match)
+	const caveatCheck = verifyCaveats(payload, params.expectedService);
+	if (!caveatCheck.valid) {
+		const isExpiry = caveatCheck.error?.startsWith('Token expired');
+		return {
+			success: false,
+			type: 'l402',
+			error: caveatCheck.error,
+			code: isExpiry ? CashuL402ErrorCode.MACAROON_EXPIRED : CashuL402ErrorCode.SERVICE_MISMATCH,
+		};
 	}
 
 	// Look up rHash from pending challenges

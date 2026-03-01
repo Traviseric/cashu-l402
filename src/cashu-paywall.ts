@@ -333,10 +333,20 @@ export async function verifyCashuPaymentOffline(
 			ttlSeconds,
 		});
 
+		// Enqueue proofs for async batch settlement if a queue is provided
+		let settlementId: string | undefined;
+		if (bridgeConfig.settlementQueue) {
+			settlementId = await bridgeConfig.settlementQueue.enqueue({
+				token,
+				amountSats: totalAmount,
+				mintUrl: config.mintUrl,
+			});
+		}
+
 		bridgeConfig.onLog?.({
 			level: 'info',
 			event: 'proof_verified_offline',
-			context: { amountSats: totalAmount, proofCount: proofs.length, dleqVerified: true },
+			context: { amountSats: totalAmount, proofCount: proofs.length, dleqVerified: true, settlementId },
 		});
 
 		return {
@@ -347,6 +357,7 @@ export async function verifyCashuPaymentOffline(
 			p2pkVerified: true,
 			dleqVerified: true,
 			bridgeL402: macaroon,
+			settlementId,
 		};
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
@@ -393,7 +404,7 @@ export async function verifyCashuPaymentSmart(
 
 	// Try offline path if bridge config provided and token is eligible
 	if (bridgeConfig && isEligibleForOfflineVerify(token, bridgeConfig.bridgePubkey)) {
-		const result = verifyCashuPaymentOffline(token, config, bridgeConfig);
+		const result = await verifyCashuPaymentOffline(token, config, bridgeConfig);
 		if (result.paid) return result;
 		// If offline fails, don't fall back — the proofs are P2PK-locked to us
 		// and a DLEQ failure means something is wrong
