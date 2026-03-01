@@ -2,4 +2,6 @@
 // Implements HTTP 402 Payment Required protocol
 
 export * from './types';
-export * from './middleware';
+export * from './macaroon';
+export * from './verification';
+export { l402Middleware } from './middleware';
