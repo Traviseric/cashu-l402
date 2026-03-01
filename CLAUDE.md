@@ -24,9 +24,13 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 | What | Where |
 |------|-------|
 | All shared types | `src/types.ts` |
-| NUT-24 ecash paywall | `src/cashu-paywall.ts` |
-| L402 server (macaroon sign/verify, challenges) | `src/l402-server.ts` |
+| NUT-24 ecash paywall + smart verify | `src/cashu-paywall.ts` |
+| L402 server (macaroon sign/verify, challenges, bridge L402) | `src/l402-server.ts` |
 | L402 client (parse challenges, auto-pay fetch) | `src/l402-client.ts` |
+| Bridge keypair management (secp256k1) | `src/bridge-keys.ts` |
+| Offline P2PK + DLEQ verification | `src/offline-verify.ts` |
+| Settlement queue (batch mint settlement) | `src/settlement-queue.ts` |
+| Pending proofs (PoS/escrow stub) | `src/pending-proofs.ts` |
 | Spending condition detection (NUT-10/11/14) | `src/conditions.ts` |
 | Payment routing heuristic | `src/spend-router.ts` |
 | Zod schemas (runtime validation) | `src/schemas.ts` |
@@ -34,6 +38,7 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 | Tests (unit) | `src/__tests__/*.test.ts` |
 | Tests (integration) | `src/__tests__/integration.test.ts` |
 | Mock Lightning (test helper) | `src/__tests__/helpers/mock-lightning.ts` |
+| Mock mint keys + DLEQ (test helper) | `src/__tests__/helpers/mock-mint-keys.ts` |
 | Test HTTP server (test helper) | `src/__tests__/helpers/test-server.ts` |
 | Runnable demo | `examples/demo.ts` |
 | Full project spec | `../internal/docs/projects/cashu-l402.md` |
@@ -97,7 +102,7 @@ This library was extracted from ArxMint. Reference mapping for tracing lineage:
 ```bash
 npm install          # Install deps
 npm run typecheck    # tsc --noEmit
-npm test             # Vitest (116 tests — 103 unit + 13 integration)
+npm test             # Vitest (177 tests — 164 unit + 13 integration)
 npm run demo         # Run E2E demo (no Docker needed)
 npm run build        # Compile to dist/
 npm run lint         # Biome check

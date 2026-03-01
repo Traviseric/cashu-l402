@@ -86,6 +86,39 @@ export const RoutePaymentParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Bridge keys (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Schema for BridgeKeyPair */
+export const BridgeKeyPairSchema = z.object({
+	privateKey: z.string().length(64),
+	publicKey: z.string().length(66),
+});
+
+// ---------------------------------------------------------------------------
+// Offline verification (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Schema for OfflineVerifyResult */
+export const OfflineVerifyResultSchema = z.object({
+	valid: z.boolean(),
+	p2pkValid: z.boolean(),
+	dleqValid: z.boolean(),
+	error: z.string().optional(),
+});
+
+/** Schema for SettlementEntry */
+export const SettlementEntrySchema = z.object({
+	id: z.string().min(1),
+	token: z.string().min(1),
+	amountSats: z.number().int().nonnegative(),
+	mintUrl: z.string().url(),
+	enqueuedAt: z.number().int().positive(),
+	status: z.enum(['pending', 'settled', 'failed']),
+	error: z.string().optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Inferred types (for convenience — prefer the interfaces in types.ts)
 // ---------------------------------------------------------------------------
 

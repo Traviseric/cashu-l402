@@ -9,7 +9,10 @@
 
 // Types
 export type {
+	BridgeKeyPair,
+	BridgeVerifyConfig,
 	CashuPaymentResult,
+	CashuPaymentResultV2,
 	CashuPaywallConfig,
 	ConditionCaveat,
 	ConditionInfo,
@@ -19,11 +22,20 @@ export type {
 	L402Token,
 	LookupInvoiceFn,
 	MacaroonPayload,
+	MintKeyset,
 	Nut10Secret,
+	OfflineVerifyBatchResult,
+	OfflineVerifyConfig,
+	OfflineVerifyResult,
 	PayInvoiceFn,
 	PaymentChallenge,
 	PaymentResult,
+	PendingProof,
 	PrevalidationResult,
+	SettleFn,
+	SettlementBatchResult,
+	SettlementEntry,
+	SettlementQueueConfig,
 	SpendRoute,
 } from './types.js';
 
@@ -34,11 +46,14 @@ export {
 	detectPaymentMethod,
 	parseCashuAuthHeader,
 	verifyCashuPayment,
+	verifyCashuPaymentOffline,
+	verifyCashuPaymentSmart,
 } from './cashu-paywall.js';
 
 // L402 server (challenge + verify)
 export {
 	clearPendingChallenges,
+	createBridgeL402,
 	createL402Challenge,
 	getPendingChallengeCount,
 	parseL402AuthHeader,
@@ -57,6 +72,29 @@ export {
 	parseL402Challenge,
 } from './l402-client.js';
 
+// Bridge keys (Phase 2)
+export {
+	createBridgeKeyPair,
+	deriveBridgePublicKey,
+	isValidPublicKey,
+	loadBridgeKeyPair,
+} from './bridge-keys.js';
+
+// Offline verification (Phase 2)
+export {
+	hasValidDleqProof,
+	isEligibleForOfflineVerify,
+	isLockedToBridge,
+	verifyProofOffline,
+	verifyTokenOffline,
+} from './offline-verify.js';
+
+// Settlement queue (Phase 2)
+export { createSettlementQueue } from './settlement-queue.js';
+
+// Pending proofs — PoS/Escrow (Phase 2)
+export { createPendingProofStore } from './pending-proofs.js';
+
 // Spending condition detection (NUT-10/11/14 + custom)
 export {
 	detectConditions,
@@ -70,11 +108,14 @@ export { routePayment } from './spend-router.js';
 
 // Zod schemas (runtime validation)
 export {
+	BridgeKeyPairSchema,
 	CashuPaywallConfigSchema,
 	ConditionInfoSchema,
 	CreateL402ChallengeParamsSchema,
 	MacaroonPayloadSchema,
 	Nut10SecretSchema,
+	OfflineVerifyResultSchema,
 	RoutePaymentParamsSchema,
+	SettlementEntrySchema,
 	VerifyL402TokenParamsSchema,
 } from './schemas.js';

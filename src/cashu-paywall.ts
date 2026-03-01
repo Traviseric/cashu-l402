@@ -5,7 +5,15 @@
  */
 
 import { CashuMint, CashuWallet, type Proof, getDecodedToken } from '@cashu/cashu-ts';
-import type { CashuPaymentResult, CashuPaywallConfig } from './types.js';
+import { detectConditions, extractConditionCaveats } from './conditions.js';
+import { createBridgeL402 } from './l402-server.js';
+import { isEligibleForOfflineVerify, verifyTokenOffline } from './offline-verify.js';
+import type {
+	BridgeVerifyConfig,
+	CashuPaymentResult,
+	CashuPaymentResultV2,
+	CashuPaywallConfig,
+} from './types.js';
 
 // ---------------------------------------------------------------------------
 // Parse
@@ -171,4 +179,187 @@ export async function verifyCashuPayment(
 		const message = err instanceof Error ? err.message : String(err);
 		return { paid: false, amountSats: 0, proofs: [], error: `Verification failed: ${message}` };
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Offline verification (Phase 2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract proofs from a decoded token, handling both v3 and v4 formats.
+ */
+function extractProofsFromToken(token: string): { proofs: Proof[]; mintUrl?: string } {
+	const decoded = getDecodedToken(token);
+
+	// v4 format (cashu-ts v2): { mint, proofs, unit }
+	if ('proofs' in decoded && Array.isArray(decoded.proofs)) {
+		return { proofs: decoded.proofs as Proof[], mintUrl: (decoded as any).mint };
+	}
+	// v3 format: { token: [{ mint, proofs }] }
+	if ('token' in decoded && Array.isArray((decoded as any).token)) {
+		const entries = (decoded as any).token as Array<{ mint: string; proofs: Proof[] }>;
+		const proofs = entries.flatMap((e) => e.proofs);
+		const mintUrl = entries[0]?.mint;
+		return { proofs, mintUrl };
+	}
+	return { proofs: [] };
+}
+
+/**
+ * Verify a Cashu payment offline using P2PK lock check + DLEQ verification.
+ *
+ * No mint contact required. Proofs must be P2PK-locked to the bridge pubkey
+ * and have valid DLEQ proofs from the mint.
+ *
+ * Returns a V2 result with offline-specific fields.
+ */
+export function verifyCashuPaymentOffline(
+	token: string,
+	config: CashuPaywallConfig,
+	bridgeConfig: BridgeVerifyConfig,
+): CashuPaymentResultV2 {
+	try {
+		const { proofs, mintUrl } = extractProofsFromToken(token);
+
+		if (proofs.length === 0) {
+			return {
+				paid: false, amountSats: 0, proofs: [], method: 'offline',
+				error: 'Empty token',
+			};
+		}
+
+		// Validate mint URL
+		if (mintUrl && mintUrl !== config.mintUrl) {
+			return {
+				paid: false, amountSats: 0, proofs: [], method: 'offline',
+				error: `Unexpected mint: ${mintUrl} (expected ${config.mintUrl})`,
+			};
+		}
+
+		// Sum proofs
+		const totalAmount = proofs.reduce((sum, p) => sum + p.amount, 0);
+		if (totalAmount < config.priceSats) {
+			return {
+				paid: false, amountSats: totalAmount, proofs, method: 'offline',
+				error: `Insufficient amount: ${totalAmount} < ${config.priceSats}`,
+			};
+		}
+
+		// Offline verification: P2PK + DLEQ
+		const offlineResult = verifyTokenOffline(token, {
+			bridgePubkey: bridgeConfig.bridgePubkey,
+			mintKeysets: bridgeConfig.mintKeysets,
+			requireDleq: bridgeConfig.requireDleq,
+		});
+
+		if (!offlineResult.allValid) {
+			const firstError = offlineResult.results.find((r) => !r.valid);
+			return {
+				paid: false,
+				amountSats: totalAmount,
+				proofs,
+				method: 'offline',
+				p2pkVerified: firstError?.p2pkValid,
+				dleqVerified: firstError?.dleqValid,
+				error: firstError?.error ?? 'Offline verification failed',
+			};
+		}
+
+		// Extract conditions from proofs and build caveats
+		const conditionCaveats: string[] = [];
+		let minLocktime: number | undefined;
+
+		for (const proof of proofs) {
+			const conditions = detectConditions(proof);
+			if (conditions) {
+				const caveats = extractConditionCaveats(conditions);
+				for (const c of caveats) {
+					conditionCaveats.push(`${c.key}=${c.value}`);
+				}
+				// Track minimum locktime for TTL clamping
+				if (conditions.locktime) {
+					if (minLocktime === undefined || conditions.locktime < minLocktime) {
+						minLocktime = conditions.locktime;
+					}
+				}
+			}
+		}
+
+		// TTL clamping: min(default TTL, locktime - now)
+		let ttlSeconds: number | undefined;
+		if (minLocktime !== undefined) {
+			const remaining = minLocktime - Math.floor(Date.now() / 1000);
+			if (remaining <= 0) {
+				return {
+					paid: false,
+					amountSats: totalAmount,
+					proofs,
+					method: 'offline',
+					error: 'Proof locktime has expired',
+				};
+			}
+			ttlSeconds = remaining;
+		}
+
+		// Deduplicate caveats
+		const uniqueCaveats = [...new Set(conditionCaveats)];
+
+		// Issue bridge L402 token
+		const proofSecrets = proofs.map((p) => p.secret);
+		const { macaroon } = createBridgeL402({
+			rootKey: bridgeConfig.rootKey,
+			proofSecrets,
+			resourcePath: config.description ?? '/api/resource',
+			location: bridgeConfig.location,
+			caveats: uniqueCaveats.length > 0 ? uniqueCaveats : undefined,
+			ttlSeconds,
+		});
+
+		return {
+			paid: true,
+			amountSats: totalAmount,
+			proofs,
+			method: 'offline',
+			p2pkVerified: true,
+			dleqVerified: true,
+			bridgeL402: macaroon,
+		};
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		return {
+			paid: false, amountSats: 0, proofs: [], method: 'offline',
+			error: `Offline verification failed: ${message}`,
+		};
+	}
+}
+
+/**
+ * Smart Cashu payment verification — tries offline first, falls back to synchronous.
+ *
+ * This is the recommended entry point for Phase 2. If `bridgeConfig` is provided
+ * and the proofs have P2PK locks + DLEQ proofs, verification happens locally
+ * (microsecond latency). Otherwise, falls back to the existing synchronous
+ * wallet.receive() path.
+ *
+ * @param token - Encoded Cashu token
+ * @param config - Paywall configuration (price, mint URL, etc.)
+ * @param bridgeConfig - Optional bridge configuration for offline path
+ */
+export async function verifyCashuPaymentSmart(
+	token: string,
+	config: CashuPaywallConfig,
+	bridgeConfig?: BridgeVerifyConfig,
+): Promise<CashuPaymentResultV2> {
+	// Try offline path if bridge config provided and token is eligible
+	if (bridgeConfig && isEligibleForOfflineVerify(token, bridgeConfig.bridgePubkey)) {
+		const result = verifyCashuPaymentOffline(token, config, bridgeConfig);
+		if (result.paid) return result;
+		// If offline fails, don't fall back — the proofs are P2PK-locked to us
+		// and a DLEQ failure means something is wrong
+		return result;
+	}
+
+	// Fall back to synchronous verification
+	const syncResult = await verifyCashuPayment(token, config);
+	return { ...syncResult, method: 'online' };
 }

@@ -184,3 +184,150 @@ export type LookupInvoiceFn = (rHash: string) => Promise<{ settled: boolean }>;
 
 /** Pay a Lightning invoice (integrator provides, for l402-client) */
 export type PayInvoiceFn = (bolt11: string) => Promise<{ preimage: string; feeSats: number }>;
+
+// ---------------------------------------------------------------------------
+// Bridge keys (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Bridge secp256k1 keypair for P2PK proof locking */
+export interface BridgeKeyPair {
+	/** Hex-encoded private key (32 bytes) */
+	privateKey: string;
+	/** Hex-encoded compressed public key (33 bytes) */
+	publicKey: string;
+}
+
+// ---------------------------------------------------------------------------
+// Offline verification (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Mint keyset for offline DLEQ verification (structurally compatible with cashu-ts MintKeys) */
+export interface MintKeyset {
+	/** Keyset identifier */
+	id: string;
+	/** Unit (e.g. "sat") */
+	unit: string;
+	/** Amount → hex public key mapping */
+	keys: Record<number, string>;
+}
+
+/** Configuration for offline proof verification */
+export interface OfflineVerifyConfig {
+	/** Bridge's secp256k1 public key (hex, compressed) */
+	bridgePubkey: string;
+	/** Mint keysets for DLEQ verification */
+	mintKeysets: MintKeyset[];
+	/** Require valid DLEQ proof (default: true) */
+	requireDleq?: boolean;
+}
+
+/** Result of offline verification for a single proof */
+export interface OfflineVerifyResult {
+	valid: boolean;
+	/** Whether the P2PK lock check passed */
+	p2pkValid: boolean;
+	/** Whether the DLEQ proof verified */
+	dleqValid: boolean;
+	/** Error message if verification failed */
+	error?: string;
+}
+
+/** Result of offline batch verification */
+export interface OfflineVerifyBatchResult {
+	allValid: boolean;
+	results: OfflineVerifyResult[];
+	validCount: number;
+	invalidCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// Bridge L402 + Smart verification (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Bridge configuration for verifyCashuPaymentSmart */
+export interface BridgeVerifyConfig {
+	/** Bridge's secp256k1 public key (hex) */
+	bridgePubkey: string;
+	/** Mint keysets for DLEQ verification */
+	mintKeysets: MintKeyset[];
+	/** Require valid DLEQ proof (default: true) */
+	requireDleq?: boolean;
+	/** Root key for bridge L402 token issuance */
+	rootKey: string;
+	/** Service location for macaroon (default: "cashu-l402-bridge") */
+	location?: string;
+}
+
+/** Extended Cashu payment result for V2 (offline + smart verification) */
+export interface CashuPaymentResultV2 extends CashuPaymentResult {
+	/** Which verification path was used */
+	method: 'online' | 'offline';
+	/** Whether DLEQ was verified (offline path only) */
+	dleqVerified?: boolean;
+	/** Whether P2PK lock was verified (offline path only) */
+	p2pkVerified?: boolean;
+	/** Settlement queue entry ID (offline path only) */
+	settlementId?: string;
+	/** Bridge-issued L402 macaroon (offline path only) */
+	bridgeL402?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Settlement queue (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Entry in the settlement queue */
+export interface SettlementEntry {
+	/** Unique entry identifier */
+	id: string;
+	/** Encoded Cashu token */
+	token: string;
+	/** Amount in satoshis */
+	amountSats: number;
+	/** Mint URL for settlement */
+	mintUrl: string;
+	/** When the entry was queued */
+	enqueuedAt: number;
+	/** Settlement status */
+	status: 'pending' | 'settled' | 'failed';
+	/** Error message if settlement failed */
+	error?: string;
+}
+
+/** Configuration for the settlement queue */
+export interface SettlementQueueConfig {
+	/** Called when a new entry is enqueued (for external persistence) */
+	onPersist?: (entry: SettlementEntry) => Promise<void>;
+	/** Called when an entry is settled or failed (for external notification) */
+	onResolve?: (entry: SettlementEntry) => Promise<void>;
+}
+
+/** Result of a batch settlement flush */
+export interface SettlementBatchResult {
+	settled: number;
+	failed: number;
+	errors: Array<{ id: string; error: string }>;
+}
+
+/** Settlement function provided by integrator for flush() */
+export type SettleFn = (entry: SettlementEntry) => Promise<void>;
+
+// ---------------------------------------------------------------------------
+// Pending proofs — PoS/Escrow (Phase 2D)
+// ---------------------------------------------------------------------------
+
+/** A conditional proof awaiting resolution (PoS hash, escrow co-signature, etc.) */
+export interface PendingProof {
+	/** Unique identifier */
+	id: string;
+	/** The Cashu proof data */
+	proof: { secret: string; C: string; amount: number; id: string };
+	/** Condition kind from NUT-10 */
+	conditionKind: string;
+	/** When this was registered */
+	registeredAt: number;
+	/** Resolution status */
+	status: 'pending' | 'resolved' | 'expired';
+	/** Resolution data (e.g. preimage for HTLC, hash for PoS) */
+	resolution?: string;
+}

@@ -215,3 +215,61 @@ export function getPendingChallengeCount(): number {
 export function clearPendingChallenges(): void {
 	pendingChallenges.clear();
 }
+
+// ---------------------------------------------------------------------------
+// Bridge L402 — deterministic token issuance without Lightning
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a bridge-issued L402 macaroon for an offline-verified Cashu payment.
+ *
+ * Instead of requiring a Lightning invoice + preimage, the bridge derives
+ * a deterministic "preimage" from the proof data using HMAC-SHA256.
+ * This maintains the L402 verification contract without Lightning.
+ *
+ * @param params.rootKey - Root key for macaroon signing
+ * @param params.proofSecrets - Sorted array of proof secret strings
+ * @param params.resourcePath - Resource being accessed
+ * @param params.location - Macaroon location hint
+ * @param params.caveats - Additional caveats (payment_method=cashu_p2pk is always added)
+ * @param params.ttlSeconds - Token TTL (default: 86400 = 24h)
+ */
+export function createBridgeL402(params: {
+	rootKey: string;
+	proofSecrets: string[];
+	resourcePath: string;
+	location?: string;
+	caveats?: string[];
+	ttlSeconds?: number;
+}): { macaroon: string; preimage: string } {
+	const identifier = randomBytes(16).toString('hex');
+	const location = params.location ?? 'cashu-l402-bridge';
+	const ttl = params.ttlSeconds ?? 86400;
+
+	// Deterministic preimage: HMAC-SHA256(rootKey, 'bridge:' + SHA256(sorted proof secrets))
+	const sortedSecrets = [...params.proofSecrets].sort();
+	const secretsDigest = createHash('sha256')
+		.update(sortedSecrets.join(':'))
+		.digest('hex');
+	const preimage = createHmac('sha256', params.rootKey)
+		.update(`bridge:${secretsDigest}`)
+		.digest('hex');
+
+	// Build caveats
+	const caveats = [
+		`service=${params.resourcePath}`,
+		'payment_method=cashu_p2pk',
+		...(params.caveats ?? []),
+	];
+
+	// Clamp TTL if provided
+	if (ttl > 0) {
+		const expiresAt = Math.floor(Date.now() / 1000) + ttl;
+		caveats.push(`expires_at=${expiresAt}`);
+	}
+
+	const payload: MacaroonPayload = { identifier, location, caveats };
+	const macaroon = signMacaroon(payload, params.rootKey);
+
+	return { macaroon, preimage };
+}
