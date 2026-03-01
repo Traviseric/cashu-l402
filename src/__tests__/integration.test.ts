@@ -11,6 +11,8 @@ import { createHash } from 'crypto';
 import { l402Middleware } from '../l402/middleware';
 import { generateMacaroon, randomPaymentHash, verifyPreimage } from '../l402/macaroon';
 import { validateToken } from '../cashu/validation';
+import { cashuL402Middleware } from '../integration/cashu-l402-middleware';
+import { TokenRegistry } from '../integration/token-registry';
 
 // Mock cashu-ts so no real network calls occur
 jest.mock('@cashu/cashu-ts', () => ({
@@ -354,5 +356,260 @@ describe('Preimage integrity', () => {
     const { preimage } = makePaymentPair();
     const { paymentHash: otherHash } = makePaymentPair();
     expect(verifyPreimage(otherHash, preimage)).toBe(false);
+  });
+});
+
+// ─── cashuL402Middleware ───────────────────────────────────────────────────────
+
+const CASHU_MINT = 'https://mint.example.com';
+const REQUIRED_AMOUNT = 10;
+const VALID_TOKEN = 'cashuAvalid_token';
+const SMALL_TOKEN = 'cashuAsmall_token';
+const BAD_MINT_TOKEN = 'cashuAbadmint_token';
+
+/**
+ * Build an Express app protected by cashuL402Middleware.
+ * Accepts an optional shared TokenRegistry for double-spend tests.
+ */
+function makeCashuApp(registry?: TokenRegistry) {
+  const app = express();
+  app.use(express.json());
+  app.get(
+    '/resource',
+    cashuL402Middleware(
+      { mintUrl: CASHU_MINT, requiredAmount: REQUIRED_AMOUNT, trustedMints: [CASHU_MINT] },
+      registry
+    ),
+    (_req, res) => res.json({ data: 'protected', success: true })
+  );
+  return app;
+}
+
+describe('cashuL402Middleware — unauthenticated', () => {
+  it('returns 402 with WWW-Authenticate Cashu header when no token provided', async () => {
+    const app = makeCashuApp();
+    const res = await request(app).get('/resource');
+
+    expect(res.status).toBe(402);
+    expect(res.headers['www-authenticate']).toMatch(
+      /^Cashu mint="[^"]+", amount="\d+"/
+    );
+    expect(res.body.paymentMethods.cashu.mintUrl).toBe(CASHU_MINT);
+    expect(res.body.paymentMethods.cashu.amount).toBe(REQUIRED_AMOUNT);
+  });
+
+  it('returns 402 when Authorization header uses a different scheme', async () => {
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', 'Bearer sometoken');
+
+    expect(res.status).toBe(402);
+  });
+});
+
+describe('cashuL402Middleware — token validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 for a token not starting with "cashu"', async () => {
+    // No mock needed — validateToken rejects before getTokenMetadata is called
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', 'Cashu not-a-cashu-token');
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toContain('"cashu"');
+  });
+
+  it('returns 401 for a token from an untrusted mint', async () => {
+    const { getTokenMetadata, getDecodedToken } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: 'https://evil-mint.com',
+      amount: REQUIRED_AMOUNT,
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({ mint: 'https://evil-mint.com', proofs: [] });
+
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${BAD_MINT_TOKEN}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toContain('not in the trusted mints list');
+  });
+
+  it('returns 402 for a token with insufficient value', async () => {
+    const { getTokenMetadata, getDecodedToken } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      amount: 5, // below REQUIRED_AMOUNT of 10
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({ mint: CASHU_MINT, proofs: [] });
+
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${SMALL_TOKEN}`);
+
+    expect(res.status).toBe(402);
+    expect(res.body.required).toBe(REQUIRED_AMOUNT);
+    expect(res.body.provided).toBe(5);
+  });
+
+  it('returns 200 for a valid token with sufficient value', async () => {
+    const { getTokenMetadata, getDecodedToken, CashuWallet } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      amount: REQUIRED_AMOUNT,
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      proofs: [{ id: 'k1', amount: REQUIRED_AMOUNT, secret: 's1', C: 'c1' }],
+    });
+    // wallet.receive resolves successfully (redemption succeeds)
+    const walletInstance = (CashuWallet as jest.Mock).mock.results[0]?.value ?? {
+      receive: jest.fn().mockResolvedValue([{ id: 'k2', amount: REQUIRED_AMOUNT, secret: 's2', C: 'c2' }]),
+    };
+    (CashuWallet as jest.Mock).mockImplementation(() => walletInstance);
+    walletInstance.receive = jest.fn().mockResolvedValue([
+      { id: 'k2', amount: REQUIRED_AMOUNT, secret: 's2', C: 'c2' },
+    ]);
+
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${VALID_TOKEN}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('returns 401 when mint redemption fails (e.g. already-spent proofs)', async () => {
+    const { getTokenMetadata, getDecodedToken, CashuWallet } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      amount: REQUIRED_AMOUNT,
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({ mint: CASHU_MINT, proofs: [] });
+    (CashuWallet as jest.Mock).mockImplementation(() => ({
+      receive: jest.fn().mockRejectedValue(new Error('Token already spent at mint')),
+    }));
+
+    const app = makeCashuApp();
+    const res = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${VALID_TOKEN}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatch(/spent/i);
+  });
+});
+
+describe('cashuL402Middleware — TokenRegistry double-spend prevention', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('rejects a token that has already been locally registered as spent', async () => {
+    const { getTokenMetadata, getDecodedToken, CashuWallet } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      amount: REQUIRED_AMOUNT,
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({ mint: CASHU_MINT, proofs: [] });
+    (CashuWallet as jest.Mock).mockImplementation(() => ({
+      receive: jest.fn().mockResolvedValue([
+        { id: 'k2', amount: REQUIRED_AMOUNT, secret: 's2', C: 'c2' },
+      ]),
+    }));
+
+    const registry = new TokenRegistry();
+    const app = makeCashuApp(registry);
+
+    // First request — should succeed
+    const res1 = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${VALID_TOKEN}`);
+    expect(res1.status).toBe(200);
+
+    // Second request with the same token — rejected by local registry
+    const res2 = await request(app)
+      .get('/resource')
+      .set('Authorization', `Cashu ${VALID_TOKEN}`);
+    expect(res2.status).toBe(401);
+    expect(res2.body.error).toMatch(/already spent/i);
+  });
+
+  it('allows two different tokens independently', async () => {
+    const { getTokenMetadata, getDecodedToken, CashuWallet } = require('@cashu/cashu-ts');
+    (getTokenMetadata as jest.Mock).mockReturnValue({
+      mint: CASHU_MINT,
+      amount: REQUIRED_AMOUNT,
+      unit: 'sat',
+    });
+    (getDecodedToken as jest.Mock).mockReturnValue({ mint: CASHU_MINT, proofs: [] });
+    (CashuWallet as jest.Mock).mockImplementation(() => ({
+      receive: jest.fn().mockResolvedValue([
+        { id: 'k2', amount: REQUIRED_AMOUNT, secret: 's2', C: 'c2' },
+      ]),
+    }));
+
+    const registry = new TokenRegistry();
+    const app = makeCashuApp(registry);
+
+    const res1 = await request(app)
+      .get('/resource')
+      .set('Authorization', 'Cashu cashuAfirst_token');
+    expect(res1.status).toBe(200);
+
+    const res2 = await request(app)
+      .get('/resource')
+      .set('Authorization', 'Cashu cashuAsecond_token');
+    expect(res2.status).toBe(200);
+  });
+});
+
+// ─── TokenRegistry unit tests ─────────────────────────────────────────────────
+
+describe('TokenRegistry', () => {
+  it('isSpent returns false for a token that has not been marked', () => {
+    const registry = new TokenRegistry();
+    expect(registry.isSpent('cashuAnever_seen')).toBe(false);
+  });
+
+  it('isSpent returns true immediately after markSpent', () => {
+    const registry = new TokenRegistry();
+    registry.markSpent('cashuAtoken1');
+    expect(registry.isSpent('cashuAtoken1')).toBe(true);
+  });
+
+  it('size reflects the number of tracked entries', () => {
+    const registry = new TokenRegistry();
+    expect(registry.size).toBe(0);
+    registry.markSpent('cashuAa');
+    registry.markSpent('cashuAb');
+    expect(registry.size).toBe(2);
+  });
+
+  it('expired entries are cleaned up and no longer reported as spent', () => {
+    // TTL of 1 ms so entries expire instantly
+    const registry = new TokenRegistry(1);
+    registry.markSpent('cashuAexpiring');
+
+    // Wait long enough for TTL to elapse
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        expect(registry.isSpent('cashuAexpiring')).toBe(false);
+        resolve();
+      }, 10);
+    });
   });
 });

@@ -5,3 +5,13 @@ export interface IntegrationConfig {
   price: number;
   unit?: string;
 }
+
+export interface CashuPaymentChallenge {
+  error: string;
+  paymentMethods: {
+    cashu: {
+      mintUrl: string;
+      amount: number;
+    };
+  };
+}
