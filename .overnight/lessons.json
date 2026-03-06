@@ -1,0 +1,36 @@
+{
+  "rejected_findings": [
+    {
+      "source": "last_mile_test",
+      "finding": "All 8 UI test scenarios failed (auth_flow, page_loads, console_errors, responsive_layout, navigation_works, forms_work, images_load, performance_check)",
+      "reason": "last_mile_test attempted to test https://mint.minibits.cash/Bitcoin as a web UI application. cashu-l402 is a TypeScript library/middleware — it has no web UI. The mint URL is a Cashu NUT-06 REST API endpoint that returns JSON, not HTML. All 8 failures are the same root cause: wrong test target type. Future runs should not regenerate last_mile_test tasks for this project.",
+      "rejected_at": "2026-02-28T06:00:00Z"
+    },
+    {
+      "source": "gap_analyzer",
+      "finding": "Project is completely empty/greenfield — missing Cashu integration, L402 middleware, integration layer, scaffolding, README, tests",
+      "reason": "Stale — these were valid findings before the first worker session. Tasks 001-006 were completed and verified with 100% review score. Project now has full TypeScript implementation with 58 passing tests. Gap analyzer findings are now permanently superseded.",
+      "rejected_at": "2026-02-28T06:00:00Z"
+    },
+    {
+      "source": "feature_audit",
+      "finding": "No source files, README, documentation, or feature specifications found",
+      "reason": "Stale — feature_audit ran before workers implemented the project. All features are now implemented and verified.",
+      "rejected_at": "2026-02-28T06:00:00Z"
+    },
+    {
+      "source": "researcher",
+      "finding": "Project has no source code, no tech stack detected, project_type: greenfield_not_started",
+      "reason": "Stale — researcher ran before workers implemented the project.",
+      "rejected_at": "2026-02-28T06:00:00Z"
+    }
+  ],
+  "unproductive_audits": [
+    {
+      "audit_type": "last_mile_test",
+      "reason": "cashu-l402 is a REST API library/middleware with no web UI. Browser-based UI testing is not applicable. last_mile_test should be skipped or replaced with API endpoint testing (curl/supertest) in future runs.",
+      "noted_at": "2026-02-28T06:00:00Z"
+    }
+  ],
+  "notes": "Second run — project now fully implemented. Security audit produced 14 real findings: 9 accepted as tasks (007-015), 4 deferred (infrastructure/ops concerns), 1 merged. All last_mile_test findings rejected as wrong test target."
+}

@@ -1,0 +1,156 @@
+{
+  "success": true,
+  "next_box": "CONDUCTOR",
+  "context": {
+    "audit_type": "security",
+    "findings": [
+      {
+        "severity": "critical",
+        "category": "auth",
+        "file": "src/l402/middleware.ts",
+        "line": 18,
+        "code_snippet": "const secret = config.secret ?? process.env['L402_SECRET'] ?? 'changeme-set-L402_SECRET';",
+        "description": "Hardcoded fallback secret 'changeme-set-L402_SECRET' is used when neither config.secret nor L402_SECRET env var is set. HMAC-SHA256 macaroons are signed with this known secret, allowing any attacker to forge valid macaroons and bypass payment verification entirely.",
+        "recommendation": "Remove the hardcoded default. Throw a startup error if neither config.secret nor L402_SECRET is provided. Example: if (!secret) throw new Error('L402_SECRET must be set in environment or config').",
+        "cwe": "CWE-798"
+      },
+      {
+        "severity": "critical",
+        "category": "config",
+        "file": "src/l402/types.ts",
+        "line": 12,
+        "code_snippet": "secret?: string;  // Falls back to L402_SECRET env var, defaults to 'changeme-set-L402_SECRET'",
+        "description": "The L402Config type marks secret as optional with a documented fallback to a hardcoded value. This design makes it easy for integrators to accidentally deploy without a secret set.",
+        "recommendation": "Make secret required in L402Config, or provide a factory function that enforces the presence of a strong secret before creating middleware.",
+        "cwe": "CWE-330"
+      },
+      {
+        "severity": "high",
+        "category": "injection",
+        "file": "src/integration/config.ts",
+        "line": 21,
+        "code_snippet": "mintUrl: process.env['CASHU_MINT_URL'] ?? 'https://mint.minibits.cash/Bitcoin'",
+        "description": "The mint URL is taken directly from an environment variable without validation. If an attacker can control CASHU_MINT_URL (e.g., via misconfigured container orchestration, .env file injection, or supply-chain compromise), they can redirect all token redemptions to a malicious server under their control, stealing payment proofs (SSRF / Server-Side Request Forgery).",
+        "recommendation": "Validate the mint URL against an allowlist of trusted mint URLs before use. At minimum, check the URL uses HTTPS and matches an expected hostname pattern. Example: const TRUSTED_MINTS = new Set([...]); if (!TRUSTED_MINTS.has(mintUrl)) throw new Error('Untrusted mint').",
+        "cwe": "CWE-918"
+      },
+      {
+        "severity": "high",
+        "category": "config",
+        "file": "src/integration/token-registry.ts",
+        "line": 15,
+        "code_snippet": "private readonly ttlMs: number = 24 * 60 * 60 * 1000; // 24 hours",
+        "description": "The TokenRegistry stores spent token keys in an in-memory Map with no upper bound on size. An attacker can send a high volume of unique (invalid) tokens to fill the registry with entries that persist for 24 hours, exhausting server memory and causing a Denial of Service. Each entry is a small string but millions of entries add up rapidly.",
+        "recommendation": "Add a maximum registry size (e.g., MAX_ENTRIES = 100_000). When the limit is reached, either reject new requests with 429 Too Many Requests or evict the oldest entries using an LRU strategy.",
+        "cwe": "CWE-400"
+      },
+      {
+        "severity": "high",
+        "category": "config",
+        "file": "src/index.ts",
+        "line": 1,
+        "code_snippet": "// No rate limiting middleware present",
+        "description": "There is no rate limiting on any endpoint. Attackers can issue unlimited requests to the 402-challenge endpoint (to probe behavior), flood the token verification path (to exhaust mint API quotas), or attempt brute-force timing attacks against the HMAC verification. Express has no built-in rate limiting.",
+        "recommendation": "Add express-rate-limit (or equivalent) to all routes, especially /api/* and any endpoint that triggers mint network calls. Example: app.use('/api', rateLimit({ windowMs: 60_000, max: 30 })).",
+        "cwe": "CWE-307"
+      },
+      {
+        "severity": "high",
+        "category": "config",
+        "file": "src/index.ts",
+        "line": 1,
+        "code_snippet": "// No security headers middleware (helmet) present",
+        "description": "The Express application does not set security-related HTTP response headers. Missing headers include: Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security (HSTS), Referrer-Policy, and Permissions-Policy. These omissions expose consumers of the API to clickjacking, MIME sniffing, and information leakage.",
+        "recommendation": "Add the 'helmet' package as middleware: import helmet from 'helmet'; app.use(helmet()); Adjust CSP as needed for your deployment.",
+        "cwe": "CWE-116"
+      },
+      {
+        "severity": "medium",
+        "category": "config",
+        "file": "src/index.ts",
+        "line": 1,
+        "code_snippet": "// No CORS configuration present",
+        "description": "The application does not configure CORS headers. Depending on the execution environment, Express may return permissive CORS headers by default, or the absence of CORS headers may block legitimate browser-based clients. Without explicit CORS policy, the security boundary is unclear.",
+        "recommendation": "Add the 'cors' package and configure it explicitly: app.use(cors({ origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] })). Never use origin: '*' on an endpoint that processes payments.",
+        "cwe": "CWE-942"
+      },
+      {
+        "severity": "medium",
+        "category": "config",
+        "file": "src/l402/middleware.ts",
+        "line": 1,
+        "code_snippet": "// Error responses include specific error messages from internal exceptions",
+        "description": "Error responses in the L402 and Cashu middleware propagate internal error messages (e.g., 'Invalid macaroon signature', 'Token mint not in trusted list') directly to clients. While these messages are useful for debugging, they reveal internal implementation details and can assist attackers in distinguishing between different failure modes.",
+        "recommendation": "In production, return generic error messages (e.g., 'Authentication failed') to clients. Log the detailed error server-side. Use NODE_ENV to switch between verbose development errors and generic production errors.",
+        "cwe": "CWE-209"
+      },
+      {
+        "severity": "medium",
+        "category": "config",
+        "file": "src/integration/config.ts",
+        "line": 25,
+        "code_snippet": "requiredAmount: process.env['REQUIRED_SATS'] ? parseInt(process.env['REQUIRED_SATS'], 10) : 10",
+        "description": "The default required payment amount is 10 satoshis (approximately $0.004 USD at typical rates). This is an extremely low barrier and may make the API economically unviable for abuse prevention. Additionally, parseInt does not validate that the value is a positive integer — a value of '0' or '-1' would be accepted, potentially disabling payment requirements.",
+        "recommendation": "Set a more appropriate minimum (e.g., 100 sats). Validate that REQUIRED_SATS parses to a positive integer: const amount = parseInt(env, 10); if (!Number.isInteger(amount) || amount <= 0) throw new Error('REQUIRED_SATS must be a positive integer').",
+        "cwe": "CWE-20"
+      },
+      {
+        "severity": "medium",
+        "category": "auth",
+        "file": "src/cashu/validation.ts",
+        "line": 1,
+        "code_snippet": "mintUrl.toLowerCase().replace(/\\/$/, '') === trustedMint.toLowerCase().replace(/\\/$/, '')",
+        "description": "Trusted mint URL comparison normalizes only case and trailing slashes. It does not handle other URL equivalences such as URL encoding differences (e.g., '%2F' vs '/'), default port numbers (e.g., https://mint.example.com vs https://mint.example.com:443), or path traversal variations. An attacker who controls a mint URL similar to a trusted one might bypass the check.",
+        "recommendation": "Use the URL constructor for normalization before comparison: const normalize = (u: string) => new URL(u).origin; Then compare normalized origins. Consider rejecting any token whose mint URL doesn't exactly match a trusted entry after normalization.",
+        "cwe": "CWE-183"
+      },
+      {
+        "severity": "medium",
+        "category": "config",
+        "file": "src/integration/token-registry.ts",
+        "line": 1,
+        "code_snippet": "private readonly store = new Map<string, number>();",
+        "description": "The TokenRegistry is entirely in-memory. On process restart (crash, redeploy, scale-out), the spent-token registry is wiped. During the window between restart and registry repopulation, previously redeemed tokens could be replayed successfully until the mint-level cryptographic check catches them. In a distributed/multi-instance deployment, each instance has an independent registry, creating a double-spend window across instances.",
+        "recommendation": "For production use, back the registry with a shared persistent store (Redis, PostgreSQL, etc.) with atomic check-and-set semantics. At minimum, document the replay risk during restarts and ensure the Cashu mint's own double-spend prevention is the authoritative check.",
+        "cwe": "CWE-362"
+      },
+      {
+        "severity": "low",
+        "category": "config",
+        "file": "src/integration/config.ts",
+        "line": 21,
+        "code_snippet": "mintUrl: process.env['CASHU_MINT_URL'] ?? 'https://mint.minibits.cash/Bitcoin'",
+        "description": "The default Cashu mint URL points to a public third-party service (minibits.cash). Using a public mint in production means tokens are redeemed against infrastructure not controlled by the operator. The availability, correctness, and trustworthiness of third-party mints cannot be guaranteed.",
+        "recommendation": "Require CASHU_MINT_URL to be explicitly set in production. Use a self-hosted or well-vetted mint. Remove the default or change it to a localhost test value to prevent accidental production use.",
+        "cwe": "CWE-1104"
+      },
+      {
+        "severity": "low",
+        "category": "deps",
+        "file": "package.json",
+        "line": 1,
+        "code_snippet": "\"@cashu/cashu-ts\": \"^2.0.0\"",
+        "description": "The package.json uses caret (^) ranges for all production dependencies, allowing automatic minor and patch updates. While patch updates are generally safe, minor updates can introduce breaking changes or new vulnerabilities. The cashu-ts library handles cryptographic operations on payment tokens; a compromised update could steal funds.",
+        "recommendation": "Pin exact dependency versions in production (remove ^ and ~). Use npm ci instead of npm install in CI/CD. Regularly run npm audit and review changelogs before updating cryptographic dependencies.",
+        "cwe": "CWE-1357"
+      },
+      {
+        "severity": "low",
+        "category": "config",
+        "file": "src/index.ts",
+        "line": 1,
+        "code_snippet": "// No structured audit logging present",
+        "description": "There is no logging of security-relevant events: payment challenges issued, tokens accepted or rejected, macaroon verification failures, or errors from the mint. Without an audit trail, it is impossible to detect attacks, investigate incidents, or comply with financial audit requirements.",
+        "recommendation": "Add structured logging (e.g., using 'pino' or 'winston') for all security events. Log: timestamp, event type, token hash (not the full token), result (accept/reject), error reason, and request metadata (IP, user-agent). Ensure logs do not contain full token strings.",
+        "cwe": "CWE-778"
+      }
+    ],
+    "severity_counts": {
+      "critical": 2,
+      "high": 3,
+      "medium": 5,
+      "low": 4
+    },
+    "summary": "The cashu-l402 codebase implements a Cashu ecash + L402 payment middleware with generally sound architecture: timing-safe HMAC comparisons, three-layer double-spend defense, TypeScript strict mode, and comprehensive tests. However, two critical issues require immediate attention before production deployment. First, the L402 middleware falls back to a well-known hardcoded secret ('changeme-set-L402_SECRET') when no secret is configured, allowing any attacker to forge valid macaroons and bypass all payment enforcement. Second, the Cashu mint URL is taken from an environment variable without validation, creating an SSRF vector. High-severity gaps include no rate limiting (enabling DoS and brute-force), no security headers (helmet), and unbounded in-memory token registry growth. Medium findings include information leakage in error messages, incomplete URL normalization for trusted mint checks, non-persistent token registry (replay risk on restart/multi-instance), permissive CORS posture, and insufficient input validation on REQUIRED_SATS. The application should not be deployed to production until the critical and high findings are resolved."
+  }
+}

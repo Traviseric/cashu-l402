@@ -1,0 +1,26 @@
+{
+  "name": "quality_gate",
+  "steps": [
+    "REVIEW_AUDIT",
+    "LAST_MILE_TEST"
+  ],
+  "current_step_index": 2,
+  "completed_steps": [
+    "REVIEW_AUDIT",
+    "LAST_MILE_TEST"
+  ],
+  "step_results": [
+    {
+      "step": "REVIEW_AUDIT",
+      "success": true,
+      "completed_at": "2026-02-28T18:22:24.446224"
+    },
+    {
+      "step": "LAST_MILE_TEST",
+      "success": true,
+      "completed_at": "2026-02-28T18:29:06.502634"
+    }
+  ],
+  "started_at": "2026-02-28T18:20:22.820392",
+  "status": "completed"
+}

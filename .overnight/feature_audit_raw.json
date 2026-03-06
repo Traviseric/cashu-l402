@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "next": "SYNTHESIZER",
+  "context": {
+    "project_slug": "cashu-l402",
+    "project_path": "C:\\code\\cashu-l402",
+    "relay_dir": "C:\\code\\cashu-l402\\.pras",
+    "run_id": "run_20260228_175632",
+    "source_box": "AI_FEATURES",
+    "features": [],
+    "verifications": [],
+    "issues": [],
+    "summary": {
+      "discovered": 0,
+      "verified": 0
+    }
+  },
+  "error": null,
+  "duration_seconds": 0.0004897117614746094,
+  "timestamp": "2026-02-28T17:56:32.710720"
+}

@@ -1,0 +1,83 @@
+{
+  "total_findings": 22,
+  "accepted": 9,
+  "rejected": 9,
+  "deferred": 4,
+  "split": 0,
+  "merged": 2,
+  "rejections": [
+    {
+      "finding": "last_mile_test: auth_flow — Auth URL returns 404 Not Found",
+      "reason": "last_mile_test was testing https://mint.minibits.cash/Bitcoin as a web UI, but this is a Cashu NUT-06 REST API endpoint, not an HTML application. cashu-l402 is a library/middleware — not a web UI. All 8 last_mile_test failures share the same root cause and are not actionable for the codebase."
+    },
+    {
+      "finding": "last_mile_test: page_loads — Main URL returns HTTP 404 JSON",
+      "reason": "Same as above — third-party API endpoint tested as web UI."
+    },
+    {
+      "finding": "last_mile_test: console_errors — Cannot verify JS health",
+      "reason": "Same root cause as page_loads failure."
+    },
+    {
+      "finding": "last_mile_test: responsive_layout — Page returned 404 JSON",
+      "reason": "REST API has no responsive layout to test."
+    },
+    {
+      "finding": "last_mile_test: navigation_works — No nav elements found",
+      "reason": "REST API has no navigation elements."
+    },
+    {
+      "finding": "last_mile_test: forms_work — No form elements found",
+      "reason": "REST API has no forms."
+    },
+    {
+      "finding": "last_mile_test: images_load — No image elements found",
+      "reason": "REST API has no images."
+    },
+    {
+      "finding": "last_mile_test: performance_check — 404 response",
+      "reason": "REST API performance cannot be measured via web page load."
+    },
+    {
+      "finding": "gap_analyzer + feature_audit + researcher: project is empty/greenfield",
+      "reason": "Stale findings from when the project had no code. Tasks 001-006 are now completed and verified with 100% verification score. Fully superseded."
+    }
+  ],
+  "deferrals": [
+    {
+      "finding": "security_audit medium: Non-persistent token registry — replay risk on restart/multi-instance (CWE-362)",
+      "reason": "Architectural concern requiring external infrastructure (Redis/PostgreSQL). Cannot be fixed in a single code task. Cashu mint's own double-spend prevention is the authoritative check."
+    },
+    {
+      "finding": "security_audit low: Default CASHU_MINT_URL points to third-party public mint (CWE-1104)",
+      "reason": "Deployment/ops concern. Task 008 already forces HTTPS validation. The default URL is a configuration decision."
+    },
+    {
+      "finding": "security_audit low: Dependency version pinning — caret ranges in package.json (CWE-1357)",
+      "reason": "Low priority ops/CI process concern, not a code defect."
+    },
+    {
+      "finding": "security_audit low: No structured audit logging (CWE-778)",
+      "reason": "Enhancement, not blocking production readiness compared to critical/high findings."
+    }
+  ],
+  "accepted_findings": [
+    {"task": "007-P0-remove-hardcoded-l402-secret.md", "finding": "Hardcoded fallback secret + optional secret type (CWE-798 + CWE-330)", "action": "MERGE"},
+    {"task": "008-P1-validate-cashu-mint-url.md", "finding": "SSRF via unvalidated CASHU_MINT_URL (CWE-918)"},
+    {"task": "009-P1-add-token-registry-size-limit.md", "finding": "Unbounded token registry memory DoS (CWE-400)"},
+    {"task": "010-P1-add-rate-limiting.md", "finding": "No rate limiting (CWE-307)"},
+    {"task": "011-P1-add-security-headers-helmet.md", "finding": "Missing security headers / no helmet (CWE-116)"},
+    {"task": "012-P2-configure-cors.md", "finding": "No CORS configuration (CWE-942)"},
+    {"task": "013-P2-fix-error-message-leakage.md", "finding": "Error message information leakage (CWE-209)"},
+    {"task": "014-P2-validate-required-sats-input.md", "finding": "REQUIRED_SATS not validated as positive integer (CWE-20)"},
+    {"task": "015-P2-improve-mint-url-normalization.md", "finding": "Incomplete URL normalization for trusted mint checks (CWE-183)"}
+  ],
+  "project_declared": {
+    "total": 6,
+    "accepted": 0,
+    "merged": 0,
+    "rejected": 0,
+    "deferred": 6,
+    "note": "Tasks 001-006 in active/ are all status:completed and verified. No pending project-declared tasks. No OVERNIGHT_TASKS.md found."
+  }
+}

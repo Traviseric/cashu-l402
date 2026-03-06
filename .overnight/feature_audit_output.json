@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "next_box": "CONDUCTOR",
+  "context": {
+    "audit_type": "feature",
+    "features_discovered": 0,
+    "features_verified": 0,
+    "features_complete": 0,
+    "features_partial": 0,
+    "features_missing": 0,
+    "features_stub": 0,
+    "coverage_pct": 0,
+    "findings": [],
+    "summary": "The cashu-l402 project is currently empty — no source files, README, documentation, or feature specifications were found. The project directory contains only the .overnight relay directory used for task orchestration. There are no claimed features to audit and no implementation to verify. This project appears to be in a pre-initialization state with no code, tests, or documentation present."
+  }
+}

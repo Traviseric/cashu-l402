@@ -1,0 +1,161 @@
+{
+  "success": true,
+  "next_box": "WORKER",
+  "verdict": "NO_GO",
+  "summary": "All 8 scenarios FAIL: https://mint.minibits.cash/Bitcoin returns HTTP 404 JSON {\"detail\":\"Not Found\"} — no HTML UI is served at this URL path, making all functional tests impossible.",
+  "total": 8,
+  "passed": 0,
+  "failed": 8,
+  "results": [
+    {
+      "scenario": "auth_flow",
+      "priority": "critical",
+      "status": "FAIL",
+      "actual": "Navigation to 'https://mint.minibits.cash/Bitcoin/login or auth page' (URL with spaces, percent-encoded) returned {\"detail\":\"Not Found\"}. No login form, email input, password input, or any UI elements found. Page title is empty.",
+      "issues": [
+        "Auth URL path is invalid — contains spaces which were percent-encoded, producing a non-existent route",
+        "Underlying base path /Bitcoin already returns 404; no auth UI exists at this host+path combination",
+        "Zero HTML elements found: no form, no inputs, no buttons, no heading"
+      ],
+      "fix_actions": [
+        "Verify the correct authentication URL for mint.minibits.cash — the /Bitcoin sub-path does not exist; check API docs or the mint's NUT-06 info endpoint (typically GET /v1/info or GET /info)",
+        "If mint.minibits.cash serves a web UI, confirm the correct path (may be https://mint.minibits.cash/ without the /Bitcoin suffix)",
+        "Update test scenario step 1 URL — remove the literal text 'or auth page' which was appended to the URL string during test generation"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; page_title: ''; all 16 element types: false; navigated URL: https://mint.minibits.cash/Bitcoin/login%20or%20auth%20page"
+    },
+    {
+      "scenario": "page_loads",
+      "priority": "critical",
+      "status": "FAIL",
+      "actual": "https://mint.minibits.cash/Bitcoin/ returned a JSON 404 response body {\"detail\":\"Not Found\"} with empty page title. No HTML content, no UI elements of any kind were found. Page load completed but served only a raw API error response, not an HTML application.",
+      "issues": [
+        "URL https://mint.minibits.cash/Bitcoin/ returns HTTP 404 JSON — not an HTML page",
+        "Page title is empty string — confirms no HTML document was loaded",
+        "All 16 UI element categories (header, nav, form, button, link, image, heading, etc.) are absent"
+      ],
+      "fix_actions": [
+        "Confirm the correct base URL for the minibits.cash Cashu mint web UI — the /Bitcoin path is not resolving; try https://mint.minibits.cash/ directly",
+        "Check if the /Bitcoin route was renamed or removed in a recent deployment by reviewing the server routing config or nginx/caddy virtual host configuration at mint.minibits.cash",
+        "If this is a Cashu NUT-06 API endpoint, verify the correct path (e.g., GET /v1/info) and update test targets accordingly — a REST API endpoint is not testable as a web UI"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; page_url: 'https://mint.minibits.cash/Bitcoin/'; page_title: ''; all elements_found: false; page load step succeeded (TCP connection made) but content is 404 JSON"
+    },
+    {
+      "scenario": "console_errors",
+      "priority": "critical",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON — no HTML or JavaScript was loaded. console_errors array is empty only because no JavaScript executed, not because the app is error-free. The empty console is a symptom of the 404 failure, not evidence of health.",
+      "issues": [
+        "Cannot meaningfully test for JS console errors when the page fails to load HTML/JS at all",
+        "The 404 JSON response means the JavaScript bundle was never fetched or executed",
+        "Empty console_errors is misleading — it reflects a non-existent application, not a working one"
+      ],
+      "fix_actions": [
+        "Fix the root 404 at https://mint.minibits.cash/Bitcoin/ (see page_loads fix_actions) — this is a prerequisite before console error testing is valid",
+        "After restoring the correct URL, re-run the console_errors scenario to capture actual JavaScript execution errors",
+        "Check server-side logs at mint.minibits.cash for the /Bitcoin route to determine if a deployment or routing regression caused the 404"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; console_errors: [] (empty due to no JS execution, not a clean bill of health); page_title: ''; all elements: false"
+    },
+    {
+      "scenario": "responsive_layout",
+      "priority": "high",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON at https://mint.minibits.cash/Bitcoin/. Viewport resize was not performed (step reported current viewport as 800x600, did not resize to 375px). No layout elements exist to test responsiveness on.",
+      "issues": [
+        "No HTML UI loaded — cannot test responsive layout on a 404 JSON response",
+        "Viewport resize step was not executed — only reported current viewport dimensions",
+        "Zero layout elements found: no header, nav, footer, heading, main content"
+      ],
+      "fix_actions": [
+        "Restore the application at https://mint.minibits.cash/Bitcoin/ before responsive layout testing is possible",
+        "Fix the viewport resize step in the test automation — the step reported existing viewport rather than resizing to 375px mobile width",
+        "After 404 is fixed, verify CSS media queries and flex/grid layouts render correctly at 375px viewport width"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; viewport step detail: '{\"width\":800,\"height\":600}' (no resize performed); all layout elements: false"
+    },
+    {
+      "scenario": "navigation_works",
+      "priority": "high",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON. Navigation click step explicitly failed with 'Could not determine click target from step text'. No nav, link, button, or header elements found on the page.",
+      "issues": [
+        "Click step failed: 'Could not determine click target from step text'",
+        "No link elements found on the page (elements_found.link: false)",
+        "No nav or navigation elements found — 404 JSON response has no HTML structure"
+      ],
+      "fix_actions": [
+        "Fix the root 404 at https://mint.minibits.cash/Bitcoin/ before navigation testing is valid",
+        "Update test automation click step to specify a concrete CSS selector or aria-label rather than natural language ('Click on main navigation links') to prevent 'Could not determine click target' failures",
+        "After URL is fixed, verify <nav> and <a> elements are present in the rendered HTML and check for broken href values or missing route handlers"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; click step success: false, detail: 'Could not determine click target from step text'; elements_found.nav: false; elements_found.link: false"
+    },
+    {
+      "scenario": "forms_work",
+      "priority": "high",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON. No form, input, or button elements found on the page. The 'Find any forms' verification step confirmed zero forms present.",
+      "issues": [
+        "No form elements found on page (elements_found.form: false)",
+        "No input elements found (elements_found.input: false)",
+        "No buttons found (elements_found.button: false)",
+        "Page is serving 404 JSON, not an HTML application with interactive forms"
+      ],
+      "fix_actions": [
+        "Fix the root 404 at https://mint.minibits.cash/Bitcoin/ — no form testing is possible on a 404 response",
+        "After URL is fixed, confirm the Cashu mint web UI renders form elements (e.g., token redemption form, minting amount input)",
+        "Verify the frontend JavaScript bundle is loading correctly and rendering dynamic form components (check for React/Vue hydration errors after URL is fixed)"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; elements_found.form: false; elements_found.input: false; elements_found.button: false; 'Find any forms' step result: 'Element check: {\"form\": False}'"
+    },
+    {
+      "scenario": "images_load",
+      "priority": "medium",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON. No image elements found on the page. Both image-checking steps confirmed elements_found.image: false.",
+      "issues": [
+        "No image elements found (elements_found.image: false on both verification steps)",
+        "Page is a JSON 404 response — no HTML document, no <img> or <svg> elements exist",
+        "Cannot verify image load status on a non-HTML page"
+      ],
+      "fix_actions": [
+        "Fix the root 404 at https://mint.minibits.cash/Bitcoin/ before image testing is valid",
+        "After URL is fixed, check for broken image src paths — verify CDN or static asset URLs return 200 and are not blocked by CORS or CSP headers",
+        "Audit network requests for image assets returning 4xx/5xx after the page loads correctly"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; elements_found.image: false (confirmed by two separate verification steps); no network_failures recorded (no images were even requested)"
+    },
+    {
+      "scenario": "performance_check",
+      "priority": "medium",
+      "status": "FAIL",
+      "actual": "Page returned 404 JSON. Time to first content and responsiveness cannot be meaningfully measured on a 404 error response. The 'Note time to first content' step was not automated. The page technically loaded quickly — but it loaded an error, not the application.",
+      "issues": [
+        "404 JSON response means application content never loaded — performance metrics are irrelevant",
+        "Time-to-first-content step was not automated: 'Step not automatable via CDP'",
+        "No UI elements loaded, so 'responsiveness' of interactions cannot be assessed"
+      ],
+      "fix_actions": [
+        "Fix the root 404 at https://mint.minibits.cash/Bitcoin/ before performance testing is valid",
+        "After URL is fixed, implement performance timing using CDP Performance domain metrics (document.timing, LCP, FID) rather than manual observation",
+        "If page load time exceeds 3 seconds after fix, profile network waterfall for large JS bundles or slow API calls and consider code splitting or lazy loading"
+      ],
+      "evidence": "page_text_snippet: '{\"detail\":\"Not Found\"}'; performance timing step: 'Step not automatable via CDP'; page verified as 'has content: True' but content is only the 404 JSON string"
+    }
+  ],
+  "critical_failures": [
+    "auth_flow: Auth URL returns 404 Not Found — no authentication UI exists at https://mint.minibits.cash/Bitcoin/login",
+    "page_loads: Main URL https://mint.minibits.cash/Bitcoin/ returns HTTP 404 JSON {\"detail\":\"Not Found\"} — application is not serving HTML",
+    "console_errors: Cannot verify JS health — page 404 means JavaScript never executed"
+  ],
+  "recommendations": [
+    "IMMEDIATE: Investigate why https://mint.minibits.cash/Bitcoin/ returns 404 — check server routing config, recent deployments, and DNS/proxy settings for mint.minibits.cash",
+    "Verify the correct URL structure for the minibits.cash Cashu mint — if it is a pure REST API (NUT-06), test scenarios should target API endpoints (e.g., GET /v1/info, POST /v1/mint) not a web UI",
+    "If a web UI is expected, check whether the /Bitcoin path was recently renamed (e.g., to just / or /app) and update test target URLs accordingly",
+    "Re-run the full test suite after the 404 is resolved — all 8 scenarios need fresh evidence before any PASS verdicts can be issued",
+    "Fix test automation for the responsive_layout scenario — viewport resize step is not executing (reporting current 800x600 instead of resizing to 375px)",
+    "Fix navigation_works click step — use explicit CSS selectors instead of natural language descriptions to avoid 'Could not determine click target' failures"
+  ]
+}

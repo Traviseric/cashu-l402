@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "next_box": "CONDUCTOR",
+  "context": {
+    "completed": 1,
+    "blocked": 0,
+    "in_progress": 0,
+    "tasks": [
+      {
+        "file": "005-P1-write-readme-documentation.md",
+        "status": "completed",
+        "commit": "580e4b5"
+      }
+    ],
+    "commits": ["580e4b5"],
+    "files_changed": ["README.md"],
+    "session_tasks_assigned": 1,
+    "session_tasks_completed": 1
+  }
+}

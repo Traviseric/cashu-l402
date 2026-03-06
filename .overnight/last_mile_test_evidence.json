@@ -1,0 +1,411 @@
+{
+  "url": "https://mint.minibits.cash/Bitcoin",
+  "collected_at": "2026-02-28T18:22:27.549659",
+  "project": "cashu-l402",
+  "total_scenarios": 8,
+  "scenarios": [
+    {
+      "scenario_name": "auth_flow",
+      "priority": "critical",
+      "page_url": "https://mint.minibits.cash/Bitcoin/login%20or%20auth%20page",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin/login or auth page",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin/login or auth page"
+        },
+        {
+          "step": "Try logging in with test credentials",
+          "action": "not_automated",
+          "success": true,
+          "detail": "Step requires complex interaction \u2014 noted for Claude verdict"
+        },
+        {
+          "step": "Verify redirect after login",
+          "action": "verify_page",
+          "success": true,
+          "detail": "Page title: , has content: True"
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "page_loads",
+      "priority": "critical",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Wait for page to fully load (max 30 seconds)",
+          "action": "wait_for_load",
+          "success": true,
+          "detail": "Page load complete"
+        },
+        {
+          "step": "Check for any error messages",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'error': False}",
+          "elements": {
+            "error": false
+          }
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "console_errors",
+      "priority": "critical",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Open browser console",
+          "action": "not_automated",
+          "success": true,
+          "detail": "Step not automatable via CDP \u2014 noted for Claude verdict"
+        },
+        {
+          "step": "Look for any red error messages",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'error': False}",
+          "elements": {
+            "error": false
+          }
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "responsive_layout",
+      "priority": "high",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Resize viewport to mobile width (375px)",
+          "action": "check_viewport",
+          "success": true,
+          "detail": "Current viewport: {\"width\":800,\"height\":600}"
+        },
+        {
+          "step": "Check layout doesn't break",
+          "action": "verify_page",
+          "success": true,
+          "detail": "Page title: , has content: True"
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "navigation_works",
+      "priority": "high",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Click on main navigation links",
+          "action": "click_not_automated",
+          "success": false,
+          "detail": "Could not determine click target from step text"
+        },
+        {
+          "step": "Verify each link works",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'link': False}",
+          "elements": {
+            "link": false
+          }
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "forms_work",
+      "priority": "high",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Find any forms on the page",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'form': False}",
+          "elements": {
+            "form": false
+          }
+        },
+        {
+          "step": "Try submitting with valid data",
+          "action": "not_automated",
+          "success": true,
+          "detail": "Step requires complex interaction \u2014 noted for Claude verdict"
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "images_load",
+      "priority": "medium",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Check all images on the page",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'image': False}",
+          "elements": {
+            "image": false
+          }
+        },
+        {
+          "step": "Look for broken image icons",
+          "action": "verify_elements",
+          "success": true,
+          "detail": "Element check: {'image': False}",
+          "elements": {
+            "image": false
+          }
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_name": "performance_check",
+      "priority": "medium",
+      "page_url": "https://mint.minibits.cash/Bitcoin/",
+      "page_title": "",
+      "page_text_snippet": "{\"detail\":\"Not Found\"}",
+      "console_errors": [],
+      "network_failures": [],
+      "elements_found": {
+        "email input": false,
+        "password input": false,
+        "login button": false,
+        "form": false,
+        "button": false,
+        "nav": false,
+        "navigation": false,
+        "header": false,
+        "footer": false,
+        "link": false,
+        "image": false,
+        "input": false,
+        "heading": false,
+        "main content": false,
+        "error": false,
+        "loading": false
+      },
+      "steps_executed": [
+        {
+          "step": "Navigate to https://mint.minibits.cash/Bitcoin",
+          "action": "navigate",
+          "success": true,
+          "detail": "Navigated to https://mint.minibits.cash/Bitcoin"
+        },
+        {
+          "step": "Note time to first content",
+          "action": "not_automated",
+          "success": true,
+          "detail": "Step not automatable via CDP \u2014 noted for Claude verdict"
+        },
+        {
+          "step": "Check if page feels responsive",
+          "action": "verify_page",
+          "success": true,
+          "detail": "Page title: , has content: True"
+        }
+      ],
+      "error": null
+    }
+  ],
+  "collection_error": null
+}
