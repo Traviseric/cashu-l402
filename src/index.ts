@@ -116,6 +116,10 @@ export {
 // Payment routing
 export { routePayment } from './spend-router.js';
 
+// Middleware helpers
+export { fastifyCashuL402 } from './middleware/fastify.js';
+export type { FastifyCashuL402Options } from './middleware/fastify.js';
+
 // Zod schemas (runtime validation)
 export {
 	BridgeKeyPairSchema,
