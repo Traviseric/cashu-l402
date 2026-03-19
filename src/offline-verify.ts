@@ -40,8 +40,6 @@ export function isLockedToBridge(proof: { secret: string }, bridgePubkey: string
 	const proofPubkey = nut10.data.toLowerCase();
 	const expectedPubkey = bridgePubkey.toLowerCase();
 
-	if (proofPubkey.length !== expectedPubkey.length) return false;
-
 	try {
 		return timingSafeEqual(Buffer.from(proofPubkey, 'hex'), Buffer.from(expectedPubkey, 'hex'));
 	} catch {

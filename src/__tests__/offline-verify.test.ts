@@ -45,6 +45,14 @@ describe('isLockedToBridge', () => {
 		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
 		expect(isLockedToBridge(proof, bridgeKP.publicKey.toUpperCase())).toBe(true);
 	});
+
+	it('returns false without throwing for mismatched-length pubkey input', () => {
+		// 64-char hex string instead of the expected 66-char compressed pubkey
+		const shortPubkey = 'a'.repeat(64);
+		const { proof } = createMockP2PKProofWithDLEQ(bridgeKP.publicKey, mockMint);
+		expect(() => isLockedToBridge(proof, shortPubkey)).not.toThrow();
+		expect(isLockedToBridge(proof, shortPubkey)).toBe(false);
+	});
 });
 
 describe('hasValidDleqProof', () => {
