@@ -126,9 +126,7 @@ export async function l402Fetch(
 		if (amountMatch) {
 			const decoded = decodeBolt11Amount(amountMatch[1], amountMatch[2]);
 			if (decoded !== null && decoded > maxCostSats) {
-				throw new Error(
-					`L402 invoice amount (${decoded} sats) exceeds max cost (${maxCostSats} sats)`,
-				);
+				throw new Error('L402 invoice exceeds maximum allowed cost');
 			}
 		}
 	}

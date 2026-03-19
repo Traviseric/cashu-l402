@@ -200,7 +200,7 @@ describe('Integration: cashu-l402', () => {
 						undefined,
 						500, // max 500 sats, but server charges 1000
 					),
-				).rejects.toThrow('exceeds max cost');
+				).rejects.toThrow('L402 invoice exceeds maximum allowed cost');
 			} finally {
 				await expensiveSrv.close();
 			}

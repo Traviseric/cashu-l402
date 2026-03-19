@@ -288,7 +288,7 @@ describe('l402Fetch', () => {
 			// lnbc100u = 100 micro-BTC = 10,000 sats. maxCostSats = 5,000 → rejected
 			await expect(
 				l402Fetch('https://api.example.com/expensive', payInvoice, undefined, 5_000),
-			).rejects.toThrow('exceeds max cost');
+			).rejects.toThrow('L402 invoice exceeds maximum allowed cost');
 			expect(payInvoice).not.toHaveBeenCalled();
 		});
 
@@ -327,7 +327,7 @@ describe('l402Fetch', () => {
 
 			await expect(
 				l402Fetch('https://api.example.com/expensive-m', payInvoice, undefined, 50_000),
-			).rejects.toThrow('100000 sats');
+			).rejects.toThrow('L402 invoice exceeds maximum allowed cost');
 			expect(payInvoice).not.toHaveBeenCalled();
 		});
 
