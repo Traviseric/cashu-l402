@@ -54,9 +54,13 @@
     "vitest": "^3.0.5"
   },
   "peerDependencies": {
+    "express": ">=4.0.0",
     "fastify": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
     "fastify": {
       "optional": true
     }
