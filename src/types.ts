@@ -44,6 +44,9 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 /**
  * Structured log entry emitted by the library.
  * Integrators can pipe this to pino, winston, console, or any logger.
+ *
+ * @remarks Integrators must sanitize `context` values before rendering to HTML —
+ * context strings may originate from external token data and could contain untrusted content.
  */
 export interface LogEntry {
 	level: LogLevel;

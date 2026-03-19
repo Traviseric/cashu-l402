@@ -17,6 +17,16 @@ import type {
 } from './types.js';
 
 // ---------------------------------------------------------------------------
+// Log safety
+// ---------------------------------------------------------------------------
+
+/** Sanitize a string for safe inclusion in log context: truncate + strip control characters. */
+function sanitizeLogValue(v: string, maxLen = 500): string {
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional control char strip
+	return v.slice(0, maxLen).replace(/[\x00-\x1F\x7F]/g, '');
+}
+
+// ---------------------------------------------------------------------------
 // Parse
 // ---------------------------------------------------------------------------
 
@@ -235,7 +245,7 @@ export async function verifyCashuPaymentOffline(
 
 		// Validate mint URL
 		if (mintUrl && mintUrl !== config.mintUrl) {
-			bridgeConfig.onLog?.({ level: 'warn', event: 'wrong_mint', context: { got: mintUrl, expected: config.mintUrl } });
+			bridgeConfig.onLog?.({ level: 'warn', event: 'wrong_mint', context: { got: sanitizeLogValue(mintUrl), expected: config.mintUrl } });
 			return {
 				paid: false, amountSats: 0, proofs: [], method: 'offline',
 				error: `Unexpected mint: ${mintUrl} (expected ${config.mintUrl})`,
@@ -267,7 +277,7 @@ export async function verifyCashuPaymentOffline(
 			bridgeConfig.onLog?.({
 				level: 'warn',
 				event: isDleqFailure ? 'dleq_verification_failed' : 'offline_verification_failed',
-				context: { error: firstError?.error, p2pkValid: firstError?.p2pkValid, dleqValid: firstError?.dleqValid },
+				context: { error: firstError?.error != null ? sanitizeLogValue(firstError.error) : undefined, p2pkValid: firstError?.p2pkValid, dleqValid: firstError?.dleqValid },
 			});
 			return {
 				paid: false,
@@ -361,7 +371,7 @@ export async function verifyCashuPaymentOffline(
 		};
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		bridgeConfig.onLog?.({ level: 'error', event: 'offline_verification_exception', context: { error: message } });
+		bridgeConfig.onLog?.({ level: 'error', event: 'offline_verification_exception', context: { error: sanitizeLogValue(message) } });
 		return {
 			paid: false, amountSats: 0, proofs: [], method: 'offline',
 			error: `Offline verification failed: ${message}`,
