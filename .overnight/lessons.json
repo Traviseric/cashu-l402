@@ -1,0 +1,43 @@
+{
+  "rejected_findings": [
+    {
+      "source": "security_audit",
+      "finding": "Settlement queue flush() race condition (AUDIT-005) — non-atomic boolean flushing flag",
+      "reason": "False positive for single-threaded Node.js. The check `if (flushing)` and assignment `flushing = true` execute synchronously with no await between them. No code can interleave in the Node.js single-threaded event loop. Only applicable to Worker threads, not standard usage.",
+      "rejected_at": "2026-02-28T02:00:00Z"
+    },
+    {
+      "source": "security_audit",
+      "finding": "Settlement entry IDs use only 16 bytes (128 bits) — birthday paradox collision risk (AUDIT-004)",
+      "reason": "128-bit randomness (UUID v4 standard) is sufficient. 2^64 operations required for birthday collision — impossible at any practical throughput. Over-engineering.",
+      "rejected_at": "2026-02-28T02:00:00Z"
+    }
+  ],
+  "unproductive_audits": [],
+  "notes": [
+    {
+      "note": "This is a TypeScript library (no UI/web frontend) — UX_AUDIT, SEO_AUDIT, ACCESSIBILITY_AUDIT, MONETIZATION_AUDIT are all irrelevant.",
+      "added_at": "2026-02-28T00:00:00Z"
+    },
+    {
+      "note": "npm publish is always a human task for this project — requires @te-btc scope on npm. Do not create an autonomous worker task for it.",
+      "added_at": "2026-02-28T00:00:00Z"
+    },
+    {
+      "note": "Docker/aesir integration tests (real mint) are infrastructure tasks requiring human setup — cannot be created as fully autonomous code worker tasks.",
+      "added_at": "2026-02-28T00:00:00Z"
+    },
+    {
+      "note": "Phase 5 items (NUT-15, NIP-98, third-party caveats, delegation chains, token refresh, metrics export) are explicitly out of scope until Phase 3 and 4 are complete.",
+      "added_at": "2026-02-28T00:00:00Z"
+    },
+    {
+      "note": "verifyCashuPaymentSmart does NOT fall back for P2PK proofs with DLEQ failure — this is intentional (a DLEQ failure = something wrong, not a fallback case). The fallback path is only for non-P2PK-locked proofs.",
+      "added_at": "2026-02-28T00:00:00Z"
+    },
+    {
+      "note": "feature_audit_raw.json (PRAS run from 2026-02-28) is stale — all 'unverified' warnings for ROADMAP items are false positives. The features were implemented in tasks 001-013 (177→265 tests). Do not create tasks from feature_audit_raw.json issues.",
+      "added_at": "2026-03-19T00:20:00Z"
+    }
+  ]
+}

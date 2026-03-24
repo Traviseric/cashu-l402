@@ -4,7 +4,7 @@
  * Extracted from ArxMint lib/cashu-paywall.ts and hardened for standalone use.
  */
 
-import { CashuMint, CashuWallet, type Proof, getDecodedToken } from '@cashu/cashu-ts';
+import { Wallet, type Proof, getDecodedToken } from '@cashu/cashu-ts';
 import { detectConditions, extractConditionCaveats } from './conditions.js';
 import { createBridgeL402 } from './l402-server.js';
 import { isEligibleForOfflineVerify, verifyTokenOffline } from './offline-verify.js';
@@ -166,8 +166,7 @@ export async function verifyCashuPayment(
 		}
 
 		// Verify proofs are unspent + claim (atomic double-spend prevention)
-		const mint = new CashuMint(config.mintUrl);
-		const wallet = new CashuWallet(mint);
+		const wallet = new Wallet(config.mintUrl);
 		await wallet.loadMint();
 
 		// checkProofsStates returns state for each proof

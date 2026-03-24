@@ -24,15 +24,14 @@ const { MOCK_MINT_URL, mockDecodedToken } = vi.hoisted(() => {
 
 // Mock cashu-ts for verifyCashuPaymentSmart sync fallback tests.
 // - getDecodedToken: returns a controlled v3-format decoded token (plain proofs, not P2PK)
-// - CashuWallet/CashuMint: avoid real mint contact
+// - Wallet: avoid real mint contact (v3 uses Wallet instead of CashuMint/CashuWallet)
 // - All other exports use real implementations via importOriginal spread.
 vi.mock('@cashu/cashu-ts', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('@cashu/cashu-ts')>();
 	return {
 		...actual,
 		getDecodedToken: vi.fn().mockReturnValue(mockDecodedToken),
-		CashuMint: vi.fn().mockImplementation(() => ({})),
-		CashuWallet: vi.fn().mockImplementation(() => ({
+		Wallet: vi.fn().mockImplementation(() => ({
 			loadMint: vi.fn().mockResolvedValue(undefined),
 			checkProofsStates: vi.fn().mockResolvedValue([{ state: 'UNSPENT' }]),
 			receive: vi.fn().mockResolvedValue(undefined),

@@ -1,0 +1,673 @@
+{
+  "success": true,
+  "next": "ENHANCER",
+  "context": {
+    "project_slug": "cashu-l402",
+    "project_path": "C:\\code\\te-btc\\cashu-l402",
+    "relay_dir": "C:\\code\\te-btc\\cashu-l402\\.pras",
+    "run_id": "run_20260228_185822",
+    "source_box": "AI_FEATURES",
+    "mode": "deep",
+    "features": [
+      {
+        "id": "pkg-description",
+        "name": "Cashu ecash \u2194 L402 settlement bridge \u2014 atomic ecash-to-macaroon exchange",
+        "description": "Cashu ecash \u2194 L402 settlement bridge \u2014 atomic ecash-to-macaroon exchange",
+        "source": "package-json",
+        "source_location": "package.json:description",
+        "confidence": 0.6,
+        "keywords": [
+          "cashu",
+          "ecash",
+          "l402",
+          "settlement",
+          "bridge",
+          "atomic",
+          "ecash",
+          "macaroon",
+          "exchange"
+        ],
+        "status_hint": ""
+      },
+      {
+        "id": "doc-ROADMAP-1",
+        "name": "Conditional Proof Integration (Research #2)",
+        "description": "Conditional Proof Integration (Research #2)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:42",
+        "confidence": 0.6,
+        "keywords": [
+          "conditional",
+          "proof",
+          "integration",
+          "research"
+        ],
+        "status_hint": ""
+      },
+      {
+        "id": "doc-ROADMAP-2",
+        "name": "`verifyCashuPaymentOffline()` detects conditions on incoming proofs via `detectConditions()`",
+        "description": "`verifyCashuPaymentOffline()` detects conditions on incoming proofs via `detectConditions()`",
+        "source": "docs",
+        "source_location": "ROADMAP.md:43",
+        "confidence": 0.75,
+        "keywords": [
+          "verifycashupaymentoffline",
+          "detects",
+          "conditions",
+          "incoming",
+          "proofs",
+          "via",
+          "detectconditions"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-3",
+        "name": "Auto-extract condition caveats \u2192 embed in bridge L402 macaroon via `extractConditionCaveats()`",
+        "description": "Auto-extract condition caveats \u2192 embed in bridge L402 macaroon via `extractConditionCaveats()`",
+        "source": "docs",
+        "source_location": "ROADMAP.md:44",
+        "confidence": 0.75,
+        "keywords": [
+          "auto",
+          "extract",
+          "condition",
+          "caveats",
+          "embed",
+          "bridge",
+          "l402",
+          "macaroon",
+          "via",
+          "extractconditioncaveats"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-4",
+        "name": "Time-lock aware TTL: macaroon TTL = `min(default_ttl, locktime - now)`, expired locktimes rejected",
+        "description": "Time-lock aware TTL: macaroon TTL = `min(default_ttl, locktime - now)`, expired locktimes rejected",
+        "source": "docs",
+        "source_location": "ROADMAP.md:45",
+        "confidence": 0.75,
+        "keywords": [
+          "time",
+          "lock",
+          "aware",
+          "ttl",
+          "macaroon",
+          "ttl",
+          "mindefault",
+          "ttl",
+          "locktime",
+          "now",
+          "expired",
+          "locktimes",
+          "rejected"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-5",
+        "name": "`src/pending-proofs.ts` \u2014 `createPendingProofStore()` with `register`, `resolve`, `expire` (PoS/escrow resolution stub)",
+        "description": "`src/pending-proofs.ts` \u2014 `createPendingProofStore()` with `register`, `resolve`, `expire` (PoS/escrow resolution stub)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:46",
+        "confidence": 0.75,
+        "keywords": [
+          "src",
+          "pending",
+          "proofs",
+          "creatependingproofstore",
+          "register",
+          "resolve",
+          "expire",
+          "pos",
+          "escrow",
+          "resolution",
+          "stub"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-6",
+        "name": "Tests for conditional verify flow (10 tests \u2014 TTL clamping, expired locktime rejection, condition caveats in macaroon, deduplication)",
+        "description": "Tests for conditional verify flow (10 tests \u2014 TTL clamping, expired locktime rejection, condition caveats in macaroon, deduplication)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:47",
+        "confidence": 0.75,
+        "keywords": [
+          "tests",
+          "conditional",
+          "verify",
+          "flow",
+          "tests",
+          "ttl",
+          "clamping",
+          "expired",
+          "locktime",
+          "rejection",
+          "condition",
+          "caveats",
+          "macaroon",
+          "deduplication"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-7",
+        "name": "Tests for settlement queue (15 tests \u2014 enqueue/count, flush, partial failures, hooks, concurrent safety)",
+        "description": "Tests for settlement queue (15 tests \u2014 enqueue/count, flush, partial failures, hooks, concurrent safety)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:48",
+        "confidence": 0.75,
+        "keywords": [
+          "tests",
+          "settlement",
+          "queue",
+          "tests",
+          "enqueue",
+          "count",
+          "flush",
+          "partial",
+          "failures",
+          "hooks",
+          "concurrent",
+          "safety"
+        ],
+        "status_hint": "done"
+      },
+      {
+        "id": "doc-ROADMAP-8",
+        "name": "Phase 3: Integration Hardening (3-5 days)",
+        "description": "Phase 3: Integration Hardening (3-5 days)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:55",
+        "confidence": 0.7,
+        "keywords": [
+          "phase",
+          "integration",
+          "hardening",
+          "days"
+        ],
+        "status_hint": ""
+      },
+      {
+        "id": "doc-ROADMAP-9",
+        "name": "Docker Integration Tests (Research #3 \u2014 Polar + aesir)",
+        "description": "Docker Integration Tests (Research #3 \u2014 Polar + aesir)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:59",
+        "confidence": 0.6,
+        "keywords": [
+          "docker",
+          "integration",
+          "tests",
+          "research",
+          "polar",
+          "aesir"
+        ],
+        "status_hint": ""
+      },
+      {
+        "id": "doc-ROADMAP-10",
+        "name": "Docker compose / aesir setup: bitcoind + LND + Nutshell mint",
+        "description": "Docker compose / aesir setup: bitcoind + LND + Nutshell mint",
+        "source": "docs",
+        "source_location": "ROADMAP.md:60",
+        "confidence": 0.75,
+        "keywords": [
+          "docker",
+          "compose",
+          "aesir",
+          "setup",
+          "bitcoind",
+          "lnd",
+          "nutshell",
+          "mint"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-11",
+        "name": "Integration test: fund cashu-ts wallet \u2192 pay L402 paywall \u2192 verify full flow",
+        "description": "Integration test: fund cashu-ts wallet \u2192 pay L402 paywall \u2192 verify full flow",
+        "source": "docs",
+        "source_location": "ROADMAP.md:61",
+        "confidence": 0.75,
+        "keywords": [
+          "integration",
+          "test",
+          "fund",
+          "cashu",
+          "wallet",
+          "pay",
+          "l402",
+          "paywall",
+          "verify",
+          "full",
+          "flow"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-12",
+        "name": "Integration test: P2PK-locked proofs + DLEQ \u2192 offline verification \u2192 macaroon issuance \u2192 token reuse",
+        "description": "Integration test: P2PK-locked proofs + DLEQ \u2192 offline verification \u2192 macaroon issuance \u2192 token reuse",
+        "source": "docs",
+        "source_location": "ROADMAP.md:62",
+        "confidence": 0.75,
+        "keywords": [
+          "integration",
+          "test",
+          "p2pk",
+          "locked",
+          "proofs",
+          "dleq",
+          "offline",
+          "verification",
+          "macaroon",
+          "issuance",
+          "token",
+          "reuse"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-13",
+        "name": "Integration test: background batch-melt queue settles locked proofs with mint",
+        "description": "Integration test: background batch-melt queue settles locked proofs with mint",
+        "source": "docs",
+        "source_location": "ROADMAP.md:63",
+        "confidence": 0.75,
+        "keywords": [
+          "integration",
+          "test",
+          "background",
+          "batch",
+          "melt",
+          "queue",
+          "settles",
+          "locked",
+          "proofs",
+          "mint"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-14",
+        "name": "Integration test against ArxMint (swap out lib/cashu-paywall.ts with @te-btc/cashu-l402)",
+        "description": "Integration test against ArxMint (swap out lib/cashu-paywall.ts with @te-btc/cashu-l402)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:64",
+        "confidence": 0.75,
+        "keywords": [
+          "integration",
+          "test",
+          "against",
+          "arxmint",
+          "swap",
+          "out",
+          "lib",
+          "cashu",
+          "paywall",
+          "btc",
+          "cashu",
+          "l402"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-15",
+        "name": "Middleware + Production Hooks",
+        "description": "Middleware + Production Hooks",
+        "source": "docs",
+        "source_location": "ROADMAP.md:66",
+        "confidence": 0.6,
+        "keywords": [
+          "middleware",
+          "production",
+          "hooks"
+        ],
+        "status_hint": ""
+      },
+      {
+        "id": "doc-ROADMAP-16",
+        "name": "Fastify middleware helper: `fastifyCashuL402(config)` \u2014 optional, separate export",
+        "description": "Fastify middleware helper: `fastifyCashuL402(config)` \u2014 optional, separate export",
+        "source": "docs",
+        "source_location": "ROADMAP.md:67",
+        "confidence": 0.75,
+        "keywords": [
+          "fastify",
+          "middleware",
+          "helper",
+          "fastifycashul402config",
+          "optional",
+          "separate",
+          "export"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-17",
+        "name": "Express middleware helper: `expressCashuL402(config)` \u2014 optional, separate export",
+        "description": "Express middleware helper: `expressCashuL402(config)` \u2014 optional, separate export",
+        "source": "docs",
+        "source_location": "ROADMAP.md:68",
+        "confidence": 0.75,
+        "keywords": [
+          "express",
+          "middleware",
+          "helper",
+          "expresscashul402config",
+          "optional",
+          "separate",
+          "export"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-18",
+        "name": "Error codes enum (standardized error responses for 402 flows)",
+        "description": "Error codes enum (standardized error responses for 402 flows)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:69",
+        "confidence": 0.75,
+        "keywords": [
+          "error",
+          "codes",
+          "enum",
+          "standardized",
+          "error",
+          "responses",
+          "flows"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-19",
+        "name": "Rate limiting hooks (integrator provides limiter, library calls it)",
+        "description": "Rate limiting hooks (integrator provides limiter, library calls it)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:70",
+        "confidence": 0.75,
+        "keywords": [
+          "rate",
+          "limiting",
+          "hooks",
+          "integrator",
+          "provides",
+          "limiter",
+          "library",
+          "calls"
+        ],
+        "status_hint": "wip"
+      },
+      {
+        "id": "doc-ROADMAP-20",
+        "name": "Structured logging hooks (integrator provides logger)",
+        "description": "Structured logging hooks (integrator provides logger)",
+        "source": "docs",
+        "source_location": "ROADMAP.md:71",
+        "confidence": 0.75,
+        "keywords": [
+          "structured",
+          "logging",
+          "hooks",
+          "integrator",
+          "provides",
+          "logger"
+        ],
+        "status_hint": "wip"
+      }
+    ],
+    "verifications": [],
+    "issues": [
+      {
+        "id": "ai-features-unverified-pkg-description",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Cashu ecash \u2194 L402 settlement bridge \u2014 atomic ecash-to-macaroon exchange",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Cashu ecash \u2194 L402 settlement bridge \u2014 atomic ecash-to-macaroon exchange'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-1",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Conditional Proof Integration (Research #2)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Conditional Proof Integration (Research #2)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-2",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: `verifyCashuPaymentOffline()` detects conditions on incoming proofs via `detectConditions()`",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for '`verifyCashuPaymentOffline()` detects conditions on incoming proofs via `detectConditions()`'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-3",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Auto-extract condition caveats \u2192 embed in bridge L402 macaroon via `extractConditionCaveats()`",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Auto-extract condition caveats \u2192 embed in bridge L402 macaroon via `extractConditionCaveats()`'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-4",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Time-lock aware TTL: macaroon TTL = `min(default_ttl, locktime - now)`, expired locktimes rejected",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Time-lock aware TTL: macaroon TTL = `min(default_ttl, locktime - now)`, expired locktimes rejected'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-5",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: `src/pending-proofs.ts` \u2014 `createPendingProofStore()` with `register`, `resolve`, `expire` (PoS/escrow resolution stub)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for '`src/pending-proofs.ts` \u2014 `createPendingProofStore()` with `register`, `resolve`, `expire` (PoS/escrow resolution stub)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-6",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Tests for conditional verify flow (10 tests \u2014 TTL clamping, expired locktime rejection, condition caveats in macaroon, deduplication)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Tests for conditional verify flow (10 tests \u2014 TTL clamping, expired locktime rejection, condition caveats in macaroon, deduplication)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-7",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Tests for settlement queue (15 tests \u2014 enqueue/count, flush, partial failures, hooks, concurrent safety)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Tests for settlement queue (15 tests \u2014 enqueue/count, flush, partial failures, hooks, concurrent safety)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-8",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Phase 3: Integration Hardening (3-5 days)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Phase 3: Integration Hardening (3-5 days)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-9",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Docker Integration Tests (Research #3 \u2014 Polar + aesir)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Docker Integration Tests (Research #3 \u2014 Polar + aesir)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-10",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Docker compose / aesir setup: bitcoind + LND + Nutshell mint",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Docker compose / aesir setup: bitcoind + LND + Nutshell mint'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-11",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Integration test: fund cashu-ts wallet \u2192 pay L402 paywall \u2192 verify full flow",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Integration test: fund cashu-ts wallet \u2192 pay L402 paywall \u2192 verify full flow'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-12",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Integration test: P2PK-locked proofs + DLEQ \u2192 offline verification \u2192 macaroon issuance \u2192 token reuse",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Integration test: P2PK-locked proofs + DLEQ \u2192 offline verification \u2192 macaroon issuance \u2192 token reuse'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-13",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Integration test: background batch-melt queue settles locked proofs with mint",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Integration test: background batch-melt queue settles locked proofs with mint'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-14",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Integration test against ArxMint (swap out lib/cashu-paywall.ts with @te-btc/cashu-l402)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Integration test against ArxMint (swap out lib/cashu-paywall.ts with @te-btc/cashu-l402)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-15",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Middleware + Production Hooks",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Middleware + Production Hooks'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-16",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Fastify middleware helper: `fastifyCashuL402(config)` \u2014 optional, separate export",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Fastify middleware helper: `fastifyCashuL402(config)` \u2014 optional, separate export'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-17",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Express middleware helper: `expressCashuL402(config)` \u2014 optional, separate export",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Express middleware helper: `expressCashuL402(config)` \u2014 optional, separate export'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-18",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Error codes enum (standardized error responses for 402 flows)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Error codes enum (standardized error responses for 402 flows)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-19",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Rate limiting hooks (integrator provides limiter, library calls it)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Rate limiting hooks (integrator provides limiter, library calls it)'",
+        "whyItMatters": "Implementation status unknown"
+      },
+      {
+        "id": "ai-features-unverified-doc-ROADMAP-20",
+        "type": "feature-unverified",
+        "severity": "warning",
+        "message": "Feature could not be verified: Structured logging hooks (integrator provides logger)",
+        "file": "",
+        "line": 0,
+        "source": "AI_FEATURES",
+        "problem": "Verification did not produce a result for 'Structured logging hooks (integrator provides logger)'",
+        "whyItMatters": "Implementation status unknown"
+      }
+    ],
+    "summary": {
+      "total": 21,
+      "critical": 0,
+      "error": 0,
+      "warning": 21,
+      "discovered": 21,
+      "verified": 0,
+      "working": 0,
+      "coverage_pct": 0.0
+    }
+  },
+  "error": null,
+  "duration_seconds": 2.640209436416626,
+  "timestamp": "2026-02-28T18:58:25.393009"
+}

@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "next_box": "CONDUCTOR",
+  "context": {
+    "task_files": [
+      "C:\\code\\te-btc\\cashu-l402\\.overnight\\active\\014-P1-remove-timing-side-channel-offline-verify.md",
+      "C:\\code\\te-btc\\cashu-l402\\.overnight\\active\\015-P2-sanitize-invoice-error-l402-client.md",
+      "C:\\code\\te-btc\\cashu-l402\\.overnight\\active\\016-P2-add-log-injection-protection-cashu-paywall.md",
+      "C:\\code\\te-btc\\cashu-l402\\.overnight\\active\\017-P1-fastify-middleware-helper.md",
+      "C:\\code\\te-btc\\cashu-l402\\.overnight\\active\\018-P1-express-middleware-helper.md"
+    ],
+    "task_count": 5,
+    "tasks_by_priority": {
+      "P0": 0,
+      "P1": 3,
+      "P2": 2,
+      "P3": 0
+    },
+    "sources": {
+      "project_declared": 5,
+      "security_audit": 0,
+      "feature_audit": 0
+    },
+    "task_groups": {
+      "security_hardening": {
+        "tasks": [
+          "014-P1-remove-timing-side-channel-offline-verify.md",
+          "015-P2-sanitize-invoice-error-l402-client.md",
+          "016-P2-add-log-injection-protection-cashu-paywall.md"
+        ],
+        "execution_hint": "sequential",
+        "reason": "Security fixes across different files but share a review pass \u2014 sequential for warm context and consistent security posture validation"
+      },
+      "middleware_layer": {
+        "tasks": [
+          "017-P1-fastify-middleware-helper.md",
+          "018-P1-express-middleware-helper.md"
+        ],
+        "execution_hint": "sequential",
+        "reason": "Both create src/middleware/*.ts files with the same export pattern; sequential ensures consistent style and shared index.ts export wiring"
+      }
+    },
+    "recommended_mode": "managed",
+    "recommended_lanes": 2,
+    "git_deduped_count": 3,
+    "human_tasks_logged": [
+      "HT-003: Docker integration stack (aesir)",
+      "HT-004: Real-mint integration tests",
+      "HT-005: GitHub Actions npm publish CI/CD"
+    ],
+    "deferred_count": 5,
+    "notes": [
+      "No new *_output.json audit files present \u2014 all tasks sourced from AGENT_TASKS.md and OVERNIGHT_TASKS.md accumulated unchecked items",
+      "Tasks 001-013 all verified complete via git history \u2014 not regenerated",
+      "AUDIT-004 and AUDIT-005 remain permanently rejected per lessons.json",
+      "Phase 5 items (token refresh, metrics, NUT-15) deferred per lessons.json scope rule",
+      "feature_audit_raw.json (PRAS run 2026-02-28) stale \u2014 all 'unverified' warnings are false positives; added to lessons.json"
+    ]
+  },
+  "_cache_key": "f0b99ef40303811e_ae5b287e6e53_06ca4e693bd9"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "worker_cycle",
+  "steps": [
+    "TASK_SYNTHESIZER",
+    "WORKER",
+    "REVIEW_AUDIT"
+  ],
+  "current_step_index": 3,
+  "completed_steps": [
+    "TASK_SYNTHESIZER",
+    "WORKER",
+    "REVIEW_AUDIT"
+  ],
+  "step_results": [
+    {
+      "step": "TASK_SYNTHESIZER",
+      "success": true,
+      "completed_at": "2026-03-19T00:25:15.304724"
+    },
+    {
+      "step": "WORKER",
+      "success": true,
+      "completed_at": "2026-03-19T00:32:58.673510"
+    },
+    {
+      "step": "REVIEW_AUDIT",
+      "success": true,
+      "completed_at": "2026-03-19T00:37:42.291332"
+    }
+  ],
+  "started_at": "2026-03-19T00:20:35.866770",
+  "status": "completed"
+}

@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-03-19T00:20:00Z",
+  "session": "run_20260319_002033",
+  "note": "No new *_output.json audit files found. Sources: AGENT_TASKS.md + OVERNIGHT_TASKS.md unchecked items. All tasks 001-013 verified complete via git history. New tasks 014-018 generated from accumulated deferred/unchecked project-declared items.",
+  "total_findings": 10,
+  "accepted": 5,
+  "rejected": 0,
+  "deferred": 5,
+  "split": 0,
+  "merged": 0,
+  "rejections": [],
+  "deferrals": [
+    {
+      "finding": "Phase 5 token refresh flow in l402-client.ts (track expires_at, auto-re-pay within 60s)",
+      "reason": "Phase 5 item — explicitly out of scope until Phase 3 and 4 complete per lessons.json"
+    },
+    {
+      "finding": "Phase 5 metrics export API — onMetric(name, value, tags) callback",
+      "reason": "Phase 5 item — explicitly out of scope until Phase 3 and 4 complete per lessons.json"
+    },
+    {
+      "finding": "Phase 5 NUT-15 multi-mint support in verifyCashuPayment",
+      "reason": "Phase 5 item — explicitly out of scope until Phase 3 and 4 complete per lessons.json"
+    },
+    {
+      "finding": "Phase 3 Docker integration stack (aesir: bitcoind + LND + Nutshell mint)",
+      "reason": "requires_human — Docker/aesir infrastructure setup; logged to HUMAN_TASKS.md as HT-003"
+    },
+    {
+      "finding": "Phase 3 real-mint integration tests (P2PK-lock, DLEQ verify, batch-melt, ArxMint drop-in)",
+      "reason": "requires_human — depends on Docker stack (HT-003); logged to HUMAN_TASKS.md as HT-004"
+    }
+  ],
+  "project_declared": {
+    "total": 10,
+    "accepted": 5,
+    "merged": 0,
+    "rejected": 0,
+    "deferred": 5,
+    "note": "10 unchecked items from AGENT_TASKS.md + OVERNIGHT_TASKS.md. 5 accepted as tasks 014-018. 3 deferred as Phase 5 items. 2 deferred as human tasks (Docker + real-mint tests). npm publish already in HUMAN_TASKS.md as HT-001."
+  },
+  "git_deduped": [
+    {
+      "task": "Add error codes enum",
+      "reason": "git history shows likely completion",
+      "matching_commits": ["00baa3f feat: add error codes, logging hooks, and rate-limit hooks (tasks 005-007)"]
+    },
+    {
+      "task": "Add logging hooks",
+      "reason": "git history shows likely completion",
+      "matching_commits": ["00baa3f feat: add error codes, logging hooks, and rate-limit hooks (tasks 005-007)"]
+    },
+    {
+      "task": "Add rate-limiting hooks",
+      "reason": "git history shows likely completion",
+      "matching_commits": ["00baa3f feat: add error codes, logging hooks, and rate-limit hooks (tasks 005-007)"]
+    }
+  ],
+  "new_tasks_created": [
+    "014-P1-remove-timing-side-channel-offline-verify.md",
+    "015-P2-sanitize-invoice-error-l402-client.md",
+    "016-P2-add-log-injection-protection-cashu-paywall.md",
+    "017-P1-fastify-middleware-helper.md",
+    "018-P1-express-middleware-helper.md"
+  ]
+}

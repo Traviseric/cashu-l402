@@ -14,11 +14,17 @@
 
 import { randomBytes } from 'node:crypto';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import { createRandomPrivateKey, pointFromHex } from '@cashu/cashu-ts/crypto/common';
-import { blindMessage, constructProofFromPromise, serializeProof, unblindSignature } from '@cashu/cashu-ts/crypto/client';
-import { createBlindSignature, getPubKeyFromPrivKey } from '@cashu/cashu-ts/crypto/mint';
-import { createDLEQProof } from '@cashu/cashu-ts/crypto/mint/NUT12';
-import { createP2PKsecret } from '@cashu/cashu-ts/crypto/client/NUT11';
+import {
+	createRandomSecretKey as createRandomPrivateKey,
+	pointFromHex,
+	blindMessage,
+	constructProofFromPromise,
+	serializeProof,
+	createBlindSignature,
+	getPubKeyFromPrivKey,
+	createDLEQProof,
+	createP2PKsecret,
+} from '@cashu/cashu-ts';
 import type { MintKeyset } from '../../types.js';
 
 // Re-export Proof type from cashu-ts for convenience
