@@ -204,11 +204,11 @@ export async function verifyCashuPayment(
 function extractProofsFromToken(token: string): { proofs: Proof[]; mintUrl?: string } {
 	const decoded = getDecodedToken(token);
 
-	// v4 format (cashu-ts v2): { mint, proofs, unit }
+	// v4 format (Cashu token v4): { mint, proofs, unit }
 	if ('proofs' in decoded && Array.isArray(decoded.proofs)) {
 		return { proofs: decoded.proofs as Proof[], mintUrl: (decoded as any).mint };
 	}
-	// v3 format: { token: [{ mint, proofs }] }
+	// v3 format (Cashu token v3): { token: [{ mint, proofs }] }
 	if ('token' in decoded && Array.isArray((decoded as any).token)) {
 		const entries = (decoded as any).token as Array<{ mint: string; proofs: Proof[] }>;
 		const proofs = entries.flatMap((e) => e.proofs);

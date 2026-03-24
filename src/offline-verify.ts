@@ -128,8 +128,8 @@ export function verifyProofOffline(proof: Proof, config: OfflineVerifyConfig): O
 /**
  * Extract proofs from a decoded token, handling both v3 and v4 formats.
  *
- * v4 (cashu-ts v2): { mint, proofs, unit }
- * v3 (legacy):      { token: [{ mint, proofs }] }
+ * v4 (Cashu token v4): { mint, proofs, unit }
+ * v3 (Cashu token v3): { token: [{ mint, proofs }] }
  */
 function extractProofs(decoded: ReturnType<typeof getDecodedToken>): Proof[] {
 	// v4 format: flat { proofs: [...] }

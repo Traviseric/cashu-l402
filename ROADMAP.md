@@ -23,7 +23,7 @@ Extract working L402 + NUT-24 code from ArxMint into standalone library.
 - [x] TypeScript compiles clean, build outputs to dist/
 - [x] JSDoc on all public exports and interface fields
 
-## Phase 2: P2PK/DLEQ Offline Verification + Conditional Proofs (COMPLETE — 177 tests)
+## Phase 2: P2PK/DLEQ Offline Verification + Conditional Proofs (COMPLETE — 278 tests)
 
 The critical optimization from Research #3: eliminate synchronous mint contact. Then wire spending conditions into the verify flow.
 
@@ -75,12 +75,14 @@ Production readiness, Docker-based integration testing, middleware helpers.
 Ship to npm (dual ESM/CJS) and swap into ArxMint.
 
 ### Dual ESM/CJS Publishing (Research #3)
-- [ ] Add `tsdown` (esbuild) — compile single TS codebase → optimized ESM + CJS with source maps
-- [ ] Update package.json exports map: `"."` → `{ "import": "./dist/index.mjs", "require": "./dist/index.cjs" }`
-- [ ] Verify import works in: Express (CJS), Fastify (ESM), Hono (ESM), Next.js (mixed)
+- [x] Add `tsdown` (esbuild) — compile single TS codebase → optimized ESM + CJS with source maps
+- [x] Update package.json exports map: `"."` → `{ "import": "./dist/index.mjs", "require": "./dist/index.cjs" }`
+- [x] Verify import works in: Express (CJS), Fastify (ESM), Hono (ESM), Next.js (mixed)
 
 ### npm Publish + ArxMint Migration
-- [ ] npm publish `@te-btc/cashu-l402`
+- [x] npm publish `@te-btc/cashu-l402` v0.1.0
+
+> **Note:** cashu-ts was bumped from v2 to v3 for ArxMint compatibility.
 - [ ] Replace ArxMint `lib/cashu-paywall.ts` with `import { ... } from '@te-btc/cashu-l402'`
 - [ ] Replace ArxMint `lib/payment-sdk.ts` with library equivalents
 - [ ] Replace L402 client functions in `lib/lightning-agent.ts`

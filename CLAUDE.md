@@ -12,7 +12,7 @@ Extracted from ArxMint's working L402 + NUT-24 implementation and extended with 
 |-------|--------|
 | Runtime | Node.js 18+ (ES2022) |
 | Language | TypeScript (ESM, NodeNext) |
-| Cashu | @cashu/cashu-ts v2 |
+| Cashu | @cashu/cashu-ts v3 |
 | Crypto | @noble/curves (Schnorr), @noble/hashes (SHA-256), node:crypto (HMAC) |
 | Validation | Zod |
 | Testing | Vitest |
